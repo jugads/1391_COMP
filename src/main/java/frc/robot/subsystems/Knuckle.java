@@ -37,7 +37,7 @@ public class Knuckle extends SubsystemBase {
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
     SmartDashboard.putNumber("Coral Count", coralCount);
     // This method will be called once per scheduler run
-    //bins
+    //Hello
   }
 
   // Sets the knuckle motor to run at a predefined high speed
