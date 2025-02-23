@@ -22,7 +22,6 @@ public class Elevator extends SubsystemBase {
   // Hardware components for controlling the elevator's vertical movement
   SparkMax leftMotor = new SparkMax(kTopMotorID, MotorType.kBrushless);
   SparkMax rightMotor = new SparkMax(kBottomMotorID, MotorType.kBrushless);
-  double kStallSpeed = 0.;
   DutyCycleEncoder encoder = new DutyCycleEncoder(4);
   double setpoint = 0;
   // Limit switches to detect when elevator reaches its boundaries
@@ -70,12 +69,5 @@ public class Elevator extends SubsystemBase {
   // Returns current elevator position using left motor's encoder
   public double getElevatorPosition() {
     return (-leftMotor.getEncoder().getPosition());
-  }
-  public double getStallCurrent() {
-    return kStallSpeed;
-  }
-  public void stallElevator() {
-    leftMotor.set(kStallSpeed);
-    rightMotor.set(-kStallSpeed);
   }
 }

@@ -33,12 +33,6 @@ public class Knuckle extends SubsystemBase {
     if (coralCount > 3 && motor.getOutputCurrent() <= 2) {
       coralCount = 0;
     }
-    // if (hasCoral()) {
-    //   setKnuckleMotorLow();
-    // }
-    // else {
-    //   setKnuckleMotorHigh();
-    // }
     SmartDashboard.putNumber("Coral Gripper Current", motor.getOutputCurrent());
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
     SmartDashboard.putNumber("Coral Count", coralCount);
@@ -50,7 +44,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(-kHighSpeed);
   }
   public boolean hasCoral() {
-    if (coralCount > 5) {
+    if (coralCount > 4) {
       coralState = true;
     }
     else {
