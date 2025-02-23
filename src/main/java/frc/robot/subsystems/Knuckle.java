@@ -45,7 +45,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(-kHighSpeed);
   }
   public boolean hasCoral() {
-    if (coralCount > 4) {
+    if (coralCount > 5) {
       coralState = true;
     }
     else {
