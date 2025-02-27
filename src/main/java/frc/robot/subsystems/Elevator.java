@@ -63,8 +63,8 @@ public class Elevator extends SubsystemBase {
   }
   // Controls elevator movement using dual motors for balanced lifting
   public void runElevatorUp(double speed) {
-    leftMotor.set(speed);
-    rightMotor.set(speed);
+    leftMotor.set(-speed);
+    rightMotor.set(-speed);
     }
   // Returns current elevator position using left motor's encoder
   public double getElevatorPosition() {

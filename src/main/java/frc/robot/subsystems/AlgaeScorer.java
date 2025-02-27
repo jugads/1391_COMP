@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class AlgaeScorer extends SubsystemBase {
   // Motor controller for the algae scoring mechanism
   SparkMax motor;
-
+  double algaeCount = 0;
   // Constructor initializes the brushless motor with specified ID
   public AlgaeScorer() {
     motor = new SparkMax(kMotorID, MotorType.kBrushless);
@@ -24,6 +24,9 @@ public class AlgaeScorer extends SubsystemBase {
   // Continuously updates SmartDashboard with algae detection status
   @Override
   public void periodic() {
+    if (threshold()) {
+      algaeCount ++;
+    }
     SmartDashboard.putBoolean("Has Algae", hasAlgae());
     SmartDashboard.putNumber("Algae current", motor.getOutputCurrent());
     // This method will be called once per scheduler run
@@ -32,20 +35,28 @@ public class AlgaeScorer extends SubsystemBase {
   // Controls the algae scorer motor speed (-1.0 to 1.0)
   public void runAlgaeScorer(double speed) {
     motor.set(speed);
+    if (speed < 0) {
+      score();
+    }
   }
 
   // Safely stops the motor by setting speed to zero
   public void stopMotor() {
     motor.set(0.);
   }
-
+  public void score() {
+    algaeCount = 0;
+  }
   // Retrieves the current draw from the motor for algae detection
   public double getAlgaeScorerCurrent() {
     return motor.getOutputCurrent();
   }
 
   // Determines if algae is present based on motor current threshold
-  public boolean hasAlgae() {
+  public boolean threshold() {
     return getAlgaeScorerCurrent() > kCurrentThreshold;
+  }
+  public boolean hasAlgae() {
+    return algaeCount > 5;
   }
 }

@@ -4,17 +4,21 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Knuckle;
+import frc.robot.subsystems.Arm;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class KnuckleDefault extends Command {
-  /** Creates a new KnuckleDefault. */
-  Knuckle knuckle;
-  public KnuckleDefault(Knuckle knuckle) {
-    this.knuckle = knuckle;
+public class ArmCommand extends Command {
+  /** Creates a new ArmCommand. */
+  ArmFeedforward ff = new ArmFeedforward(0., 0.0122, 0);
+  Arm arm;
+  PIDController controller = new PIDController(2.7, 0, 0);
+  public ArmCommand(Arm arm) {
+    this.arm = arm;
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(knuckle);
+    addRequirements(arm);
   }
 
   // Called when the command is initially scheduled.
@@ -24,13 +28,8 @@ public class KnuckleDefault extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // if (knuckle.hasCoral()) {
-    //   knuckle.setKnuckleMotorLow();
-    // }
-    // else {
-    //   knuckle.stopMotor();
-    // }
-    knuckle.stopMotor();
+    var pidSpeed = controller.calculate(arm.getEncoderPosition(), 0.15);
+    arm.runMotor(ff.calculate(0.15, pidSpeed)+pidSpeed);
   }
 
   // Called once the command ends or is interrupted.

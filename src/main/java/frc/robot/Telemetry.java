@@ -30,26 +30,26 @@ public class Telemetry {
      */
     public Telemetry(double maxSpeed) {
         MaxSpeed = maxSpeed;
-        SignalLogger.start();
+        // SignalLogger.start();
     }
 
     /* What to publish over networktables for telemetry */
-    private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
-
+    // private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    Pose2d pose = new Pose2d();
     /* Robot swerve drive state */
-    private final NetworkTable driveStateTable = inst.getTable("DriveState");
-    private final StructPublisher<Pose2d> drivePose = driveStateTable.getStructTopic("Pose", Pose2d.struct).publish();
-    private final StructPublisher<ChassisSpeeds> driveSpeeds = driveStateTable.getStructTopic("Speeds", ChassisSpeeds.struct).publish();
-    private final StructArrayPublisher<SwerveModuleState> driveModuleStates = driveStateTable.getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
-    private final StructArrayPublisher<SwerveModuleState> driveModuleTargets = driveStateTable.getStructArrayTopic("ModuleTargets", SwerveModuleState.struct).publish();
-    private final StructArrayPublisher<SwerveModulePosition> driveModulePositions = driveStateTable.getStructArrayTopic("ModulePositions", SwerveModulePosition.struct).publish();
-    private final DoublePublisher driveTimestamp = driveStateTable.getDoubleTopic("Timestamp").publish();
-    private final DoublePublisher driveOdometryFrequency = driveStateTable.getDoubleTopic("OdometryFrequency").publish();
+    // private final NetworkTable driveStateTable = inst.getTable("DriveState");
+    // private final StructPublisher<Pose2d> drivePose = driveStateTable.getStructTopic("Pose", Pose2d.struct).publish();
+    // private final StructPublisher<ChassisSpeeds> driveSpeeds = driveStateTable.getStructTopic("Speeds", ChassisSpeeds.struct).publish();
+    // private final StructArrayPublisher<SwerveModuleState> driveModuleStates = driveStateTable.getStructArrayTopic("ModuleStates", SwerveModuleState.struct).publish();
+    // private final StructArrayPublisher<SwerveModuleState> driveModuleTargets = driveStateTable.getStructArrayTopic("ModuleTargets", SwerveModuleState.struct).publish();
+    // private final StructArrayPublisher<SwerveModulePosition> driveModulePositions = driveStateTable.getStructArrayTopic("ModulePositions", SwerveModulePosition.struct).publish();
+    // private final DoublePublisher driveTimestamp = driveStateTable.getDoubleTopic("Timestamp").publish();
+    // private final DoublePublisher driveOdometryFrequency = driveStateTable.getDoubleTopic("OdometryFrequency").publish();
 
     /* Robot pose for field positioning */
-    private final NetworkTable table = inst.getTable("Pose");
-    private final DoubleArrayPublisher fieldPub = table.getDoubleArrayTopic("robotPose").publish();
-    private final StringPublisher fieldTypePub = table.getStringTopic(".type").publish();
+    // private final NetworkTable table = inst.getTable("Pose");
+    // private final DoubleArrayPublisher fieldPub = table.getDoubleArrayTopic("robotPose").publish();
+    // private final StringPublisher fieldTypePub = table.getStringTopic(".type").publish();
 
     /* Mechanisms to represent the swerve module states */
     private final Mechanism2d[] m_moduleMechanisms = new Mechanism2d[] {
@@ -84,13 +84,13 @@ public class Telemetry {
     /** Accept the swerve drive state and telemeterize it to SmartDashboard and SignalLogger. */
     public void telemeterize(SwerveDriveState state) {
         /* Telemeterize the swerve drive state */
-        drivePose.set(state.Pose);
-        driveSpeeds.set(state.Speeds);
-        driveModuleStates.set(state.ModuleStates);
-        driveModuleTargets.set(state.ModuleTargets);
-        driveModulePositions.set(state.ModulePositions);
-        driveTimestamp.set(state.Timestamp);
-        driveOdometryFrequency.set(1.0 / state.OdometryPeriod);
+        // drivePose.set(state.Pose);
+        // driveSpeeds.set(state.Speeds);
+        // driveModuleStates.set(state.ModuleStates);
+        // driveModuleTargets.set(state.ModuleTargets);
+        // driveModulePositions.set(state.ModulePositions);
+        // driveTimestamp.set(state.Timestamp);
+        // driveOdometryFrequency.set(1.0 / state.OdometryPeriod);
 
         /* Also write to log file */
         m_poseArray[0] = state.Pose.getX();
@@ -102,15 +102,16 @@ public class Telemetry {
             m_moduleTargetsArray[i*2 + 0] = state.ModuleTargets[i].angle.getRadians();
             m_moduleTargetsArray[i*2 + 1] = state.ModuleTargets[i].speedMetersPerSecond;
         }
+        this.pose = state.Pose;
 
-        SignalLogger.writeDoubleArray("DriveState/Pose", m_poseArray);
-        SignalLogger.writeDoubleArray("DriveState/ModuleStates", m_moduleStatesArray);
-        SignalLogger.writeDoubleArray("DriveState/ModuleTargets", m_moduleTargetsArray);
-        SignalLogger.writeDouble("DriveState/OdometryPeriod", state.OdometryPeriod, "seconds");
+        // SignalLogger.writeDoubleArray("DriveState/Pose", m_poseArray);
+        // SignalLogger.writeDoubleArray("DriveState/ModuleStates", m_moduleStatesArray);
+        // SignalLogger.writeDoubleArray("DriveState/ModuleTargets", m_moduleTargetsArray);
+        // SignalLogger.writeDouble("DriveState/OdometryPeriod", state.OdometryPeriod, "seconds");
 
         /* Telemeterize the pose to a Field2d */
-        fieldTypePub.set("Field2d");
-        fieldPub.set(m_poseArray);
+        // fieldTypePub.set("Field2d");
+        // fieldPub.set(m_poseArray);
 
         /* Telemeterize the module states to a Mechanism2d */
         for (int i = 0; i < 4; ++i) {
@@ -118,7 +119,15 @@ public class Telemetry {
             m_moduleDirections[i].setAngle(state.ModuleStates[i].angle);
             m_moduleSpeeds[i].setLength(state.ModuleStates[i].speedMetersPerSecond / (2 * MaxSpeed));
 
-            SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
+            // SmartDashboard.putData("Module " + i, m_moduleMechanisms[i]);
         }
+        
     }
+    public double getCurrentRot() {
+        return pose.getRotation().getDegrees();
+    }
+    public double getCurrentX() {
+        return pose.getX();
+    }
+    
 }
