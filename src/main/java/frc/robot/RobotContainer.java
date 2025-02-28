@@ -10,6 +10,8 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.ArmCommand;
+import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.KnuckleDefault;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeScorer;
@@ -26,6 +29,7 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Knuckle;
+import frc.robot.subsystems.Leds;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -47,6 +51,7 @@ public class RobotContainer {
     public final Elevator elevator = new Elevator();
     public final AlgaeScorer algaeScorer = new AlgaeScorer();
     public final Arm arm = new Arm();
+    public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer);
     public RobotContainer() {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
    else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
@@ -56,15 +61,15 @@ public class RobotContainer {
     private void configureBindings() {  
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        // drivetrain.setDefaultCommand(
-        //     // Drivetrain will execute this command periodically
-        //     drivetrain.applyRequest(() ->drive
-        //         // drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1)) // Drive forward with negative Y (forward)
-        //             // .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1)) // Drive left with negative X (left)
-        //             // .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-        //     )
-        // );
-        elevator.setDefaultCommand(new RunCommand(() -> elevator.runElevatorUp(0.), elevator));
+        drivetrain.setDefaultCommand(
+            // Drivetrain will execute this command periodically
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1)) // Drive forward with negative Y (forward)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1)) // Drive left with negative X (left)
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+            )
+        );
+        elevator.setDefaultCommand(new ElevatorCommand(elevator));
         knuckle.setDefaultCommand(new KnuckleDefault(knuckle));
         algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.2 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm));
@@ -75,6 +80,8 @@ public class RobotContainer {
         joystick.b().whileTrue(new RunCommand(()-> arm.runMotor(0.1), arm));
         joystick.x().whileTrue(new RunCommand(()-> arm.runMotor(-0.1), arm));
         joystick.leftBumper().whileTrue(new RunCommand(() -> knuckle.score(), knuckle));
+        joystick.rightTrigger().whileTrue(new InstantCommand(() -> elevator.setSetpoint(0.4)));
+        joystick.leftTrigger().whileTrue(new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator));
         drivetrain.registerTelemetry(logger::telemeterize);
     }
     public Command getAutonomousCommand() {
@@ -82,5 +89,6 @@ public class RobotContainer {
     }
     public void setStartingSetpoints() {
         arm.setSetpoint(arm.getEncoderPosition());
+        elevator.setSetpoint(elevator.getElevatorPosition());
     }
 }

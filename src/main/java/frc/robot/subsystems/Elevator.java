@@ -36,7 +36,9 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("Elevator Right Current", rightMotor.getOutputCurrent());
     SmartDashboard.putNumber("Elevator Left Current", leftMotor.getOutputCurrent());
+    SmartDashboard.putNumber("elevator speed", leftMotor.get());
     SmartDashboard.putNumber("Elevator Position", getElevatorPosition());
+    SmartDashboard.putNumber("Elevator setpoint", getSetpoint());
     if (getElevatorDown()) {
       leftMotor.getEncoder().setPosition(0.);
       leftMotor.getEncoder().setPosition(0.);
@@ -68,6 +70,6 @@ public class Elevator extends SubsystemBase {
     }
   // Returns current elevator position using left motor's encoder
   public double getElevatorPosition() {
-    return (-leftMotor.getEncoder().getPosition());
+    return MathUtil.clamp((-leftMotor.getEncoder().getPosition()/20.261821746826172), 0, 1);
   }
 }
