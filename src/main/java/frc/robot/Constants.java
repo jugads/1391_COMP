@@ -38,7 +38,7 @@ public class Constants {
     public class HopperConstants {
         public static final int kBeltMotorID = 10;
         public static final int kWheelMotorID = 9;
-        public static final int kBeamBreakPort = 0;
+        public static final int kBeamBreakPort = 1;
     }
     public class AlgaeScorerConstants{
         public static final int kMotorID = 4;
@@ -56,7 +56,10 @@ public class Constants {
         public static final double kPDynamic = 0.;
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
-       
+        public static final double kElevL1 = 0.3;
+        public static final double kElevL2 = 0.15;
+        public static final double kElevL3 = 0.4;
+        public static final double kElevL4 = 0.90;
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -69,6 +72,10 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.00035;
         public static final double kEncoderOffset = 0.593;
+        public static final double kArmL1 = 0.;
+        public static final double kArmL2 = 0.1699;
+        public static final double kArmL3 = 0.1699;
+        public static final double kArmL4 = 0.08;
     }
     public class ReefPoses {
         public static final Pose2d kRED0_1 = new Pose2d(11.1, 4.25, Rotation2d.fromDegrees(0));
