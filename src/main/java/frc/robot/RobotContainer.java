@@ -47,23 +47,32 @@ import static frc.robot.Constants.ArmConstants.*;
 import static frc.robot.Constants.ReefPoses.*;
 import static frc.robot.Constants.OperatorConstants.*;
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = 3* Math.PI;
-    /* Setting up bindings for necessary control of the swerve drive platform */
+    // Drive configuration
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+    private double MaxAngularRate = 3 * Math.PI;
+
+    // Swerve drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-    private final SwerveRequest.RobotCentric driveRR = new SwerveRequest.RobotCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+            .withDeadband(MaxSpeed * 0.1)
+            .withRotationalDeadband(MaxAngularRate * 0.1)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    
-            private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+
+    private final SwerveRequest.RobotCentric driveRR = new SwerveRequest.RobotCentric()
+            .withDeadband(MaxSpeed * 0.1)
+            .withRotationalDeadband(MaxAngularRate * 0.1)
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
+    private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
+    // Telemetry
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
+    // Controllers
     private final CommandXboxController joystick = new CommandXboxController(0);
     private final Joystick operator = new Joystick(1);
+
+    // Subsystems
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final Knuckle knuckle = new Knuckle();
     public final Elevator elevator = new Elevator();
@@ -81,37 +90,39 @@ public class RobotContainer {
         configureBindings();
     }
 
-    private void configureBindings() {  
-        // Note that X is defined as forward according to WPILib convention,
-        // and Y is defined as to the left according to WPILib convention.
+    private void configureBindings() {
+        // Set default commands for subsystems
+        configureDefaultCommands();
 
-        /*DEFAULT COMMANDS
-        ***************************************************************************************
-        ***************************************************************************************
-        ***************************************************************************************
-        ***************************************************************************************
-        */
+        // Configure driver controls
+        configureDriverControls();
+
+        // Configure operator controls
+        configureOperatorControls();
+
+        // Register telemetry
+        drivetrain.registerTelemetry(logger::telemeterize);
+    }
+
+    private void configureDefaultCommands() {
+        // Configure drivetrain default command for field-centric control
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1)) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1)) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
+
+        // Set default commands for other subsystems
         elevator.setDefaultCommand(new ElevatorCommand(elevator));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
         algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.2 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm));
         hopper.setDefaultCommand(new HopperCommand(hopper));
-        // reset the field-centric heading on left bumper press
+    }
 
-        /*DRIVER CONTROLLER
-        ***************************************************************************************
-        ***************************************************************************************
-        ***************************************************************************************
-        ***************************************************************************************
-        */
+    private void configureDriverControls() {
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         joystick.a().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
         joystick.b().whileTrue(new RunCommand(()-> arm.runMotor(0.1), arm));
@@ -152,12 +163,9 @@ public class RobotContainer {
         );
         joystick.povUp().whileTrue(new RunCommand(() -> arm.setSetpoint(0.16)));
         joystick.povDown().whileTrue(new RunCommand(() -> arm.setSetpoint(0.)));
-        /*OPERATOR CONTROLLER
-        ***************************************************************************************
-        ***************************************************************************************
-        ***************************************************************************************
-        ***************************************************************************************
-        */
+    }
+
+    private void configureOperatorControls() {
         new JoystickButton(operator, Constants.OperatorConstants.kL1).whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
@@ -206,8 +214,8 @@ public class RobotContainer {
         new JoystickButton(operator, k300degrees).and(joystick.a()).whileTrue(
             AutoBuilder.pathfindToPose(kRED8_9, K_CONSTRAINTS)
         );
-        drivetrain.registerTelemetry(logger::telemeterize);
     }
+
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }
