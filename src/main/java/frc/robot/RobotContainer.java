@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -32,6 +33,7 @@ import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.KnuckleCommand;
 import frc.robot.commands.HopperCommand;
 import frc.robot.commands.AutoAlignCommand;
+import frc.robot.commands.AutonomousCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeScorer;
 import frc.robot.subsystems.Arm;
@@ -66,12 +68,16 @@ public class RobotContainer {
     public final Knuckle knuckle = new Knuckle();
     public final Elevator elevator = new Elevator();
     public final AlgaeScorer algaeScorer = new AlgaeScorer();
+    public final AutonomousCommand autos = new AutonomousCommand();
     public final Arm arm = new Arm();
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer);
     public final Hopper hopper = new Hopper();
+    private final SendableChooser<Command> autoChooser = new SendableChooser<>();
+
     public RobotContainer() {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
    else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
+        autoChooser.addOption("3-4-5-6", autos.branches3456());
         configureBindings();
     }
 
@@ -203,7 +209,7 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
     }
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        return autoChooser.getSelected();
     }
     public void setStartingSetpoints() {
         arm.setSetpoint(arm.getEncoderPosition());
