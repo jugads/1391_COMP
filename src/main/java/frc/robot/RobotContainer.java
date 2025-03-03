@@ -33,6 +33,7 @@ import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.KnuckleCommand;
 import frc.robot.commands.HopperCommand;
 import frc.robot.commands.AutoAlignCommand;
+import frc.robot.commands.TransferCommand;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeScorer;
@@ -77,16 +78,16 @@ public class RobotContainer {
     public final Knuckle knuckle = new Knuckle();
     public final Elevator elevator = new Elevator();
     public final AlgaeScorer algaeScorer = new AlgaeScorer();
-    public final AutonomousCommand autos = new AutonomousCommand();
     public final Arm arm = new Arm();
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer);
     public final Hopper hopper = new Hopper();
+    public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public RobotContainer() {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
         else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
-        autoChooser.addOption("3-4-5-6", autos.branches3456());
+        autoChooser.addOption("3-4-5-6", autos.branches3_4_5_6());
         configureBindings();
     }
 
@@ -143,23 +144,7 @@ public class RobotContainer {
         );
         joystick.rightTrigger().whileTrue(new RunCommand(() -> elevator.increaseSetpoint(0.01)));
         joystick.leftTrigger().whileTrue(
-            new SequentialCommandGroup(
-                // new InstantCommand(() -> knuckle.score(), knuckle),
-                new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
-                new WaitUntilCommand(() -> (Math.abs(elevator.getSetpoint()-elevator.getElevatorPosition()) < 0.01)),
-                new InstantCommand(() -> arm.setSetpoint(kArmTran)).until(() -> arm.getEncoderPosition() < -0.225),/*,*/
-                new WaitCommand(0.25),
-                new ParallelCommandGroup(
-                    new RunCommand(() -> hopper.runBoth(0.4, 1.), hopper),
-                    new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
-                ).until(() -> knuckle.hasCoral()),
-                new ParallelCommandGroup(
-                new InstantCommand(() -> arm.setSetpoint(0.15)),
-                new InstantCommand(() -> elevator.setSetpoint(kElevTran+0.03)),
-                new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
-                )
-            )
-            // 
+            new TransferCommand(elevator, arm, knuckle, hopper)
         );
         joystick.povUp().whileTrue(new RunCommand(() -> arm.setSetpoint(0.16)));
         joystick.povDown().whileTrue(new RunCommand(() -> arm.setSetpoint(0.)));
@@ -219,6 +204,7 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }
+    
     public void setStartingSetpoints() {
         arm.setSetpoint(arm.getEncoderPosition());
         elevator.setSetpoint(elevator.getElevatorPosition());

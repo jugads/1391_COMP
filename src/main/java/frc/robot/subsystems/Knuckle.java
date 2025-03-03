@@ -19,6 +19,7 @@ public class Knuckle extends SubsystemBase {
   String state = "null";
   double coralCount;
   boolean coralState = false;
+  double scoreCount;
   // Constructor initializes the brushless motor with specified ID
   public Knuckle() {
     motor = new SparkMax(kMotorID, MotorType.kBrushless);
@@ -29,6 +30,10 @@ public class Knuckle extends SubsystemBase {
   public void periodic() {
     if (motor.getOutputCurrent() >= 20) {
       coralCount ++;
+    }
+    if (scoreCount > 15) {
+      coralCount = 0;
+      scoreCount = 0;
     }
     SmartDashboard.putNumber("Coral Gripper Current", motor.getOutputCurrent());
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
@@ -54,10 +59,10 @@ public class Knuckle extends SubsystemBase {
   public void setKnuckleMotorLow() {
     motor.set(-kLowSpeed);
     }
-    public void score() {
-      motor.set(1.);
-      coralCount = 0;
-    }
+  public void score() {
+    motor.set(1.);
+    scoreCount++;
+  }
   // Retrieves the current draw from the motor for coral detection
   public double getCurrent() {
     return motor.getOutputCurrent();
