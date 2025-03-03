@@ -9,6 +9,10 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -17,6 +21,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -43,7 +49,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
-
+    NetworkTable m_limelightRight = NetworkTableInstance.getDefault().getTable("limelight-fright");
+    NetworkTable m_limelightLeft = NetworkTableInstance.getDefault().getTable("limelight-fleft");
+    private final SwerveRequest.ApplyRobotSpeeds m_ApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
@@ -129,6 +137,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     /**
@@ -153,6 +162,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     /**
@@ -185,6 +195,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        configureAutoBuilder();
     }
 
     /**
@@ -221,13 +232,24 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
+        pose.update(getPigeon2().getRotation2d(), getModulePositions());
+        // if (!DriverStation.isAutonomous()) {
+        if (getTVLeft()) {
+            if (Math.abs(getPose().getX() - getLeftLLPose().getX()) > 0.5 || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 0.5)) {
+        pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
+            }
+            else {
+            pose.addVisionMeasurement(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()), Utils.getCurrentTimeSeconds()-(m_limelightLeft.getEntry("tl").getDouble(0.))/1000);
+            SmartDashboard.putBoolean("Updating?", true);
+            }
+            // lastPose = new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d());
+        }
         var array = new double[] {
             getPose().getX(),
             getPose().getY(),
             getPose().getRotation().getRadians(),
         };
         SmartDashboard.putNumberArray("MyPose", array);
-        pose.update(getPigeon2().getRotation2d(), getModulePositions());
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -235,16 +257,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
          * Otherwise, only check and apply the operator perspective if the DS is disabled.
          * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
          */
-        // if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-        //     DriverStation.getAlliance().ifPresent(allianceColor -> {
-        //         setOperatorPerspectiveForward(
-        //             allianceColor == Alliance.Red
-        //                 ? kRedAlliancePerspectiveRotation
-        //                 : kBlueAlliancePerspectiveRotation
-        //         );
-        //         m_hasAppliedOperatorPerspective = true;
-        //     });
-        // }
+        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+            DriverStation.getAlliance().ifPresent(allianceColor -> {
+                setOperatorPerspectiveForward(
+                    allianceColor == Alliance.Red
+                        ? kRedAlliancePerspectiveRotation
+                        : kBlueAlliancePerspectiveRotation
+                );
+                m_hasAppliedOperatorPerspective = true;
+            });
+        }
     }
 
     private void startSimThread() {
@@ -278,7 +300,86 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       public void resetGyro(double angle) {
         getPigeon2().setYaw(angle);
       }
+      public double getTXLeft() {
+        return m_limelightLeft.getEntry("tx").getDouble(0.);
+      }
+      public double getTYLeft() {
+        return m_limelightLeft.getEntry("ty").getDouble(0.);
+      }
+      public boolean getTVLeft() {
+        return m_limelightLeft.getEntry("tv").getDouble(0.) == 1.;
+      }
+    //   public boolean getTV() {
+    //     return m_limelight.getEntry("tv").getDouble(0.0) == 1.0;
+    //   }
+      public boolean getTVRight() {
+        return m_limelightRight.getEntry("tv").getDouble(0.0) == 1.0;
+      }
+    //   public double getTZ() {
+    //     return m_limelight.getEntry("ty").getDouble(0.0);
+    //   }
+    //   public Pose2d getPoseLL() {
+    //     var array = m_limelight.getEntry("botpose_wpired").getDoubleArray(new double[]{});
+    //     double[] result = {array[0], array[1], array[5]};
+    //     Pose2d pose = new Pose2d(result[0], result[1], new Rotation2d(result[2]));
+    //     return pose;
+    //     // double[] poseArray = {pose.getX(), pose.getY(), ((pose.getRotation().getDegrees())/360)+(pose.getRotation().getDegrees()%360)};
+    //     // table.getEntry("RobotPose").setDoubleArray(poseArray);
+    //     // SmartDashboard.putNumberArray("Raw Pose", result);
+    //   }
+      public Pose2d getRightLLPose() {
+        var array = m_limelightRight.getEntry("botpose_wpiblue").getDoubleArray(new double[]{0,0,0,0,0,0});
+        // double[] result = {array[0], array[1], array[5]};
+        Pose2d pose = new Pose2d(0, 0, new Rotation2d(0));
+        return pose;
+      }
+      public Pose2d getLeftLLPose() {
+        var array = m_limelightLeft.getEntry("botpose_wpiblue").getDoubleArray(new double[]{0,0,0,0,0,0});
+        double[] result = {array[0], array[1], array[5]};
+        Pose2d pose = new Pose2d(result[0], result[1], new Rotation2d(result[2]));
+        return pose;
+      }
+      public double getTXRight() {
+        return m_limelightRight.getEntry("tx").getDouble(0.);
+      }
+      public double getTYRight() {
+        return m_limelightRight.getEntry("ty").getDouble(0.);
+      }
+      private void configureAutoBuilder() {
+        try {
+            var config = RobotConfig.fromGUISettings();
+            AutoBuilder.configure(()-> getPose(), 
+                                this::resetPose,
+                                () -> getState().Speeds, 
+                                (speeds, feedforwards) -> setControl(
+                                    m_ApplyRobotSpeeds.withSpeeds(speeds)
+                        .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                        .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+                                ), 
+                                new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                                new PIDConstants(9.0, 0.0, 0.0), // Translation PID constants
+                                new PIDConstants(2.7, 0.0, 0.0)
+            ), 
+                                config, 
+                                () -> {
+                                    // Boolean supplier that controls when the path will be mirrored for the red alliance
+                                    // This will flip the path being followed to the red side of the field.
+                                    // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+                      
+                                    var alliance = DriverStation.getAlliance();
+                                    if (alliance.isPresent()) {
+                                      return alliance.get() == DriverStation.Alliance.Red;
+                                    }
+                                    return false;
+                                  },
+                                    this);
 
+                                    
+                }
+                catch (Exception ex) {
+                    DriverStation.reportError("HAWK TUAH", ex.getStackTrace());
+                }
+        }
     /**
      * Adds a vision measurement to the Kalman Filter. This will correct the odometry pose estimate
      * while still accounting for measurement noise.

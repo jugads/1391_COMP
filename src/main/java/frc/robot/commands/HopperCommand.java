@@ -4,21 +4,16 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Hopper;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class ElevatorCommand extends Command {
-  ElevatorFeedforward ff = new ElevatorFeedforward(0, 0.070, 1.65);
-  PIDController pid = new PIDController(1.65, 0, 0.03);
-  /** Creates a new ElevatorCommand. */
-  Elevator elevator;
-  public ElevatorCommand(Elevator elevator) {
-    this.elevator = elevator;
+public class HopperCommand extends Command {
+  /** Creates a new HopperCommand. */
+  Hopper hopper;
+  public HopperCommand(Hopper hopper) {
+    this.hopper = hopper;
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(elevator);
+    addRequirements(hopper);
   }
 
   // Called when the command is initially scheduled.
@@ -28,8 +23,7 @@ public class ElevatorCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // elevator.runElevatorUp(0);
-    elevator.runElevatorUp(MathUtil.clamp(ff.calculate(-pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())), -0.2, 1.));
+    hopper.runBoth(0, 0);
   }
 
   // Called once the command ends or is interrupted.

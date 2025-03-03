@@ -90,7 +90,7 @@ public class Leds extends SubsystemBase {
       flash(Color.kChartreuse);
     } */
     else {
-      flash(Color.kDarkRed);
+      setAll(Color.kWhite);
     }
   }
     // This method will be called once per scheduler run
@@ -156,7 +156,7 @@ public class Leds extends SubsystemBase {
 
   // Makes the LEDs flash by alternating between the specified color and black
   public void flash(Color color) {
-    if ((int)(timer.get() * 3) % 2 == 0) {
+    if ((int)(timer.get() * 6) % 2 == 0) {
       setAll(color);
     } else {
       setAll(Color.kBlack);

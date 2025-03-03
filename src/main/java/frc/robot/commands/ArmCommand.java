@@ -12,9 +12,9 @@ import frc.robot.subsystems.Arm;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ArmCommand extends Command {
   /** Creates a new ArmCommand. */
-  ArmFeedforward ff = new ArmFeedforward(0., 0.0122, 0);
+  ArmFeedforward ff = new ArmFeedforward(0., 0.02, 0);
   Arm arm;
-  PIDController controller = new PIDController(2.7, 0, 0);
+  PIDController controller = new PIDController(2., 0, 0.1);
   public ArmCommand(Arm arm) {
     this.arm = arm;
     // Use addRequirements() here to declare subsystem dependencies.
@@ -28,8 +28,9 @@ public class ArmCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    var pidSpeed = controller.calculate(arm.getEncoderPosition(), 0.2);
-    arm.runMotor(ff.calculate(0.2, pidSpeed)+pidSpeed);
+    var pidSpeed = controller.calculate(arm.getEncoderPosition(), arm.getSetpoint());
+    arm.runMotor(ff.calculate(arm.getSetpoint(), pidSpeed)+pidSpeed);
+    // arm.runMotor(0.);
   }
 
   // Called once the command ends or is interrupted.

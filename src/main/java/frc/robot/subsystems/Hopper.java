@@ -42,7 +42,7 @@ public class Hopper extends SubsystemBase {
   public void stopWheelMotor() {
     wheelMotor.set(0);
   }
-  public void bothAtSameTime(double wheelSpeed, double beltSpeed) {
+  public void runBoth(double wheelSpeed, double beltSpeed) {
     beltMotor.set(beltSpeed);
     wheelMotor.set(wheelSpeed);
   }
