@@ -85,7 +85,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
-   else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
+        else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
         autoChooser.addOption("3-4-5-6", autos.branches3456());
         configureBindings();
     }
