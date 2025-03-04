@@ -127,15 +127,18 @@ public class RobotContainer {
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
         joystick.y().whileTrue(new ParallelCommandGroup(
-           new InstantCommand(() -> elevator.setSetpoint(0.35)),
-           new InstantCommand(() -> arm.setSetpoint(0.15)),
+           new InstantCommand(() -> elevator.setSetpoint(0.6)),
+           new InstantCommand(() -> arm.setSetpoint(0.25)),
            new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
         ).until(() -> algaeScorer.hasAlgae()));
         joystick.b().whileTrue(
             new RunCommand(() -> algaeScorer.score())
         );
         joystick.start().whileTrue(
-            new RunCommand(() -> hopper.runBeltMotor(-1.), hopper)
+        new ParallelCommandGroup(
+            new InstantCommand(() -> elevator.setSetpoint(0.4)),
+            new InstantCommand(() -> arm.setSetpoint(0.25))
+        )
         );
         joystick.rightBumper().whileTrue(
             drivetrain.applyRequest(() ->
@@ -144,7 +147,13 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-        joystick.rightTrigger().whileTrue(new RunCommand(() -> elevator.increaseSetpoint(0.01)));
+        joystick.rightTrigger().whileTrue(
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -0.3 : 0.3))
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -0.3 : 0.3))
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+            )
+        );
         joystick.leftTrigger().whileTrue(
             new TransferCommand(elevator, arm, knuckle, hopper)
         );

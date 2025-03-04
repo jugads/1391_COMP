@@ -95,7 +95,7 @@ public class Leds extends SubsystemBase {
       flash(Color.kChartreuse);
     } */
     else {
-      flash(DriverStation.getAlliance().get() == Alliance.Blue ? Color.kBlue : Color.kRed);
+      setAll(DriverStation.getAlliance().get() == Alliance.Blue ? Color.kBlue : Color.kRed);
     }
   }
     // This method will be called once per scheduler run

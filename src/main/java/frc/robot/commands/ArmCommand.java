@@ -4,6 +4,8 @@
 
 package frc.robot.commands;
 
+import static frc.robot.Constants.ArmConstants.kArmL4;
+import static frc.robot.Constants.ElevatorConstants.kElevL1;
 import static frc.robot.Constants.ElevatorConstants.kElevTran;
 
 import edu.wpi.first.math.MathUtil;
@@ -48,15 +50,15 @@ public class ArmCommand extends Command {
     // Otherwise: [0.05, 0.25]
     var armSetpoint =  MathUtil.clamp(
     arm.getSetpoint(), 
-    (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.05, 
+    (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : kArmL4, 
     0.25
     );
     SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
     
     // Combine PID and feedforward outputs, scaled to 85% for safety margin
     var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
-    arm.runMotor(0.85*(ff.calculate(armSetpoint, pidSpeed)+pidSpeed));
-    // arm.runMotor(0.);
+    // arm.runMotor(0.85*(ff.calculate(armSetpoint, pidSpeed)+pidSpeed));
+    arm.runMotor(0.);
   }
 
   // Called once the command ends or is interrupted.

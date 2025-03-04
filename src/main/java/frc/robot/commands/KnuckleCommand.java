@@ -32,6 +32,9 @@ public class KnuckleCommand extends Command {
       // If coral is present, run the knuckle motor at low speed
       knuckle.setKnuckleMotorLow();
     }
+    else if (knuckle.isScoring()) {
+      knuckle.score();
+    }
     else {
       // If no coral is detected, stop the motor
       knuckle.stopMotor();

@@ -39,10 +39,8 @@ public class AutoAlignCommand extends Command {
   @Override
   public void initialize() {
     // Target setpoints for alignment:
-    // X: -1.5 meters from target
-    xController.setSetpoint(-1.5);
-    // Y: -2.5 meters for left target, -3 meters for right target
-    yController.setSetpoint(aligningLeft ? -2.5 : -3);
+    xController.setSetpoint(aligningLeft ? -1 : 0.6);
+    yController.setSetpoint(-1);
     // Allow 0.3m tolerance in both axes
     xController.setTolerance(0.3);
     yController.setTolerance(0.3);

@@ -61,6 +61,9 @@ public class Knuckle extends SubsystemBase {
     motor.set(1.);
     scoreCount++;
   }
+  public boolean isScoring() {
+    return scoreCount > 0;
+  }
   // Retrieves the current draw from the motor for coral detection
   public double getCurrent() {
     return motor.getOutputCurrent();

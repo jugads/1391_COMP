@@ -51,7 +51,7 @@ public class AutonomousCommand extends Command {
   public Command branches3_4_5_6() {
     poseArrays = new Pose2d[]{
     isRed() ? kRED2_3 : kBLUE2_3,
-    isRed() ? kREDSOURCERIGHT : kBLUESOURCERIGHT,
+    isRed() ? kREDSOURCERIGHT_leftAlign : kBLUESOURCERIGHT,
     isRed() ? kRED4_5 : kBLUE4_5,
     isRed() ? kRED4_5 : kBLUE4_5
     };
