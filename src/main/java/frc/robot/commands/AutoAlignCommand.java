@@ -15,7 +15,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AutoAlignCommand extends Command {
   /** Creates a new DriveToReef. */
-  PIDController xController = new PIDController(0.04, 0., 0.0013);
+  PIDController xController = new PIDController(0.0275, 0., 0.0013);
   PIDController yController = new PIDController(0.006, 0., 0.0003);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
@@ -33,8 +33,8 @@ public class AutoAlignCommand extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    xController.setSetpoint(aligningLeft ? 4 : 2.5);
-    yController.setSetpoint(-1);
+    xController.setSetpoint(-1.5);
+    yController.setSetpoint(aligningLeft ? -2.5 : -3);
     xController.setTolerance(0.3);
     yController.setTolerance(0.3);
   }
@@ -48,6 +48,7 @@ public class AutoAlignCommand extends Command {
     .withVelocityY(-kMaxSpeed * yController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
     .withRotationalRate(0.)
     );
+    drivetrain.setAligning(true);
     }
 
   // Called once the command ends or is interrupted.
@@ -58,6 +59,7 @@ public class AutoAlignCommand extends Command {
     .withVelocityY(0)
     .withRotationalRate(0.)
     );
+    drivetrain.setAligning(false);
   }
 
   // Returns true when the command should end.

@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -79,7 +80,7 @@ public class RobotContainer {
     public final Elevator elevator = new Elevator();
     public final AlgaeScorer algaeScorer = new AlgaeScorer();
     public final Arm arm = new Arm();
-    public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer);
+    public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer, drivetrain);
     public final Hopper hopper = new Hopper();
     public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -88,6 +89,7 @@ public class RobotContainer {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
         else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
         autoChooser.addOption("3-4-5-6", autos.branches3_4_5_6());
+        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
     }
 
@@ -119,19 +121,25 @@ public class RobotContainer {
         elevator.setDefaultCommand(new ElevatorCommand(elevator));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
         algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.2 : 0.), algaeScorer));
-        arm.setDefaultCommand(new ArmCommand(arm));
+        arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new HopperCommand(hopper));
     }
 
     private void configureDriverControls() {
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         joystick.a().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
-        joystick.b().whileTrue(new RunCommand(()-> arm.runMotor(0.1), arm));
-        joystick.x().whileTrue(new RunCommand(()-> arm.runMotor(-0.1), arm));
-        joystick.leftBumper().whileTrue(new RunCommand(() -> knuckle.score(), knuckle));
+        joystick.leftBumper().whileTrue(new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
+        joystick.y().whileTrue(new ParallelCommandGroup(
+           new InstantCommand(() -> elevator.setSetpoint(0.35)),
+           new InstantCommand(() -> arm.setSetpoint(0.15)),
+           new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+        ).until(() -> algaeScorer.hasAlgae()));
+        joystick.b().whileTrue(
+            new RunCommand(() -> algaeScorer.score())
+        );
         joystick.start().whileTrue(
             new RunCommand(() -> hopper.runBeltMotor(-1.), hopper)
         );

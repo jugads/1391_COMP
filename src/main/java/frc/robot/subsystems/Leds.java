@@ -23,15 +23,17 @@ public class Leds extends SubsystemBase {
   Arm arm;
   AlgaeScorer algaeScorer;
   Knuckle knuckle;
+  CommandSwerveDrivetrain drivetrain;
   //Chute chute;
   boolean def = true;
   boolean transferring = false;
-  public Leds(AddressableLED leds, AddressableLEDBuffer buffer, Arm arm, Knuckle knuckle, AlgaeScorer algaeScorer) {
+  public Leds(AddressableLED leds, AddressableLEDBuffer buffer, Arm arm, Knuckle knuckle, AlgaeScorer algaeScorer, CommandSwerveDrivetrain drivetrain) {
     this.leds = leds;
     this.buffer = buffer;
     this.arm = arm;
     this.algaeScorer = algaeScorer;
     this.knuckle = knuckle;
+    this.drivetrain = drivetrain;
     //this.chute = chute;
     timer.start();
     leds.setLength(buffer.getLength());
@@ -74,11 +76,14 @@ public class Leds extends SubsystemBase {
         int value = (int) ((Math.sin(time * 3 + i * 0.5) * 0.5 + 0.5) * 255); // Wave effect
         buffer.setLED(i, Color.fromHSV(hue, saturation, value));
       } */
-    if (knuckle.hasCoral()) {
+    if (drivetrain.isAligning()) {
+      flash(Color.kGold);
+    }
+    else if (knuckle.hasCoral()) {
       flash(Color.kWhiteSmoke);
     }
     else if (algaeScorer.hasAlgae()) {
-      flash(Color.kMediumAquamarine);
+      flash(Color.kAquamarine);
     }
     //else if (chute.hasCoral()) {
      // flash(Color.kWhiteSmoke);
@@ -90,7 +95,7 @@ public class Leds extends SubsystemBase {
       flash(Color.kChartreuse);
     } */
     else {
-      setAll(Color.kWhite);
+      flash(DriverStation.getAlliance().get() == Alliance.Blue ? Color.kBlue : Color.kRed);
     }
   }
     // This method will be called once per scheduler run

@@ -31,7 +31,6 @@ public class Arm extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("Arm Angle", getEncoderPosition());
     SmartDashboard.putNumber("Arm Speed Motor", motor.get());
-    SmartDashboard.putNumber("Setpoint arm", lastPosition);
     SmartDashboard.putNumber("Voltage", motor.getBusVoltage());
     // setSetpoint(getEncoderPosition());
     // This method will be called once per scheduler run

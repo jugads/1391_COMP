@@ -1,6 +1,3 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.commands;
 
@@ -29,14 +26,11 @@ public class TransferCommand extends SequentialCommandGroup {
     this.arm = arm;
     this.hopper = hopper;
     this.knuckle = knuckle;
-    command();
-  }
-
-  public SequentialCommandGroup command() {
-    return new SequentialCommandGroup(
+    
+    addCommands(
       // new InstantCommand(() -> knuckle.score(), knuckle),
       new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
-      new WaitUntilCommand(() -> (Math.abs(elevator.getSetpoint()-elevator.getElevatorPosition()) < 0.01)),
+      new WaitUntilCommand(() -> (Math.abs(elevator.getSetpoint()-elevator.getElevatorPosition()) < 0.03)),
       new InstantCommand(() -> arm.setSetpoint(kArmTran)).until(() -> arm.getEncoderPosition() < (arm.getSetpoint()+0.005)),/*,*/
       new WaitCommand(0.25),
       new ParallelCommandGroup(

@@ -9,8 +9,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.KnuckleConstants;
-
 import static frc.robot.Constants.KnuckleConstants.*;
 
 public class Knuckle extends SubsystemBase {
@@ -31,7 +29,7 @@ public class Knuckle extends SubsystemBase {
     if (motor.getOutputCurrent() >= 20) {
       coralCount ++;
     }
-    if (scoreCount > 15) {
+    if (scoreCount > 10) {
       coralCount = 0;
       scoreCount = 0;
     }

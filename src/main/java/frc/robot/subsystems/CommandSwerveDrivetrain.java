@@ -49,6 +49,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+    private boolean isAligning = false;
     NetworkTable m_limelightRight = NetworkTableInstance.getDefault().getTable("limelight-fright");
     NetworkTable m_limelightLeft = NetworkTableInstance.getDefault().getTable("limelight-fleft");
     private final SwerveRequest.ApplyRobotSpeeds m_ApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
@@ -314,6 +315,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     //   }
       public boolean getTVRight() {
         return m_limelightRight.getEntry("tv").getDouble(0.0) == 1.0;
+      }
+      public void setAligning(boolean aligning) {
+        isAligning = aligning;
+      }
+      public boolean isAligning() {
+        return isAligning;
       }
     //   public double getTZ() {
     //     return m_limelight.getEntry("ty").getDouble(0.0);

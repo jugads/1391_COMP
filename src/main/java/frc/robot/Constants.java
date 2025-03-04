@@ -28,7 +28,7 @@ public class Constants {
         public static final int kMotorID = 5;
         // public static final double kCurrentThreshold = 75;
         public static final double kHighSpeed = 0.8;
-        public static final double kLowSpeed = 0.1;
+        public static final double kLowSpeed = 0.05;
     }
     public class ChuteConstants {
         public static final int kMotorID = 8;
@@ -42,7 +42,7 @@ public class Constants {
     }
     public class AlgaeScorerConstants{
         public static final int kMotorID = 4;
-        public static final double kCurrentThreshold = 20;
+        public static final double kCurrentThreshold = 25;
         
     }
     public class ElevatorConstants{
@@ -56,7 +56,7 @@ public class Constants {
         public static final double kPDynamic = 0.;
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
-        public static final double kElevL1 = 0.4;
+        public static final double kElevL1 = 0.65;
         public static final double kElevL2 = 0.14; 
         public static final double kElevL3 = 0.44;
         public static final double kElevL4 = 0.98;
@@ -73,7 +73,7 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.00035;
         public static final double kEncoderOffset = 0.593;
-        public static final double kArmL1 = -0.15;
+        public static final double kArmL1 = -0.08;
         public static final double kArmL2 = 0.1849;
         public static final double kArmL3 = 0.1849;
         public static final double kArmL4 = 0.15;
@@ -81,12 +81,12 @@ public class Constants {
     }
     public class ReefPoses {
         public static final Pose2d kRED0_1 = new Pose2d(11.1, 4.25, Rotation2d.fromDegrees(0));
-        public static final Pose2d kRED2_3 = new Pose2d(12, 5.6, Rotation2d.fromDegrees(-60));
+        public static final Pose2d kRED2_3 = new Pose2d(11.84, 5.82, Rotation2d.fromDegrees(-60));
         public static final Pose2d kRED4_5 = new Pose2d(14, 5.7, Rotation2d.fromDegrees(-120));
         public static final Pose2d kRED6_7 = new Pose2d(15, 4, Rotation2d.fromDegrees(180));
         public static final Pose2d kRED8_9 = new Pose2d(14, 2.5, Rotation2d.fromDegrees(120));
         public static final Pose2d kRED10_11 = new Pose2d(12.14, 2.43, Rotation2d.fromDegrees(60));
-        public static final Pose2d kREDSOURCERIGHT = new Pose2d(15.797, 6.709, Rotation2d.fromDegrees(-128));
+        public static final Pose2d kREDSOURCERIGHT = new Pose2d(16.17, 7.1, Rotation2d.fromDegrees(-128));
         public static final Pose2d kREDSOURCELEFT = new Pose2d(16.42, 1, Rotation2d.fromDegrees(128));
         public static final PathConstraints K_CONSTRAINTS = new PathConstraints(3.0, 3.0, 2*Math.PI, 3*Math.PI);
     }

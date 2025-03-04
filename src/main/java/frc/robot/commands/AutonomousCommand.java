@@ -20,11 +20,15 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class AutonomousCommand extends Command {
@@ -35,7 +39,7 @@ public class AutonomousCommand extends Command {
   Arm arm;
   Hopper hopper;
   Knuckle knuckle;
-  
+  Pose2d[] poseArrays;
   public AutonomousCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric driveRR, Elevator elevator, Arm arm, Hopper hopper, Knuckle knuckle) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.drivetrain = drivetrain;
@@ -45,22 +49,38 @@ public class AutonomousCommand extends Command {
     this.hopper = hopper;
     this.knuckle = knuckle;
   }
-
-  public Command branches3_4_5_6() { 
+  public boolean isRed() {
+    return DriverStation.getAlliance().get() == Alliance.Red;
+  }
+  public Command branches3_4_5_6() {
+    poseArrays = new Pose2d[]{
+    isRed() ? kRED2_3 : kBLUE2_3,
+    isRed() ? kREDSOURCERIGHT : kBLUESOURCERIGHT,
+    isRed() ? kRED4_5 : kBLUE4_5,
+    isRed() ? kRED4_5 : kBLUE4_5
+    };
     return Commands.sequence(
-      AutoBuilder.pathfindToPose(kRED2_3, K_CONSTRAINTS),
-       new ParallelCommandGroup(
-        new AutoAlignCommand(drivetrain, driveRR, true),
-        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-        new InstantCommand(() -> arm.setSetpoint(kArmL4))
-        ),
-       new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
-       /*new ParallelCommandGroup( // Travel height
+      new ParallelCommandGroup(
+      new InstantCommand(() -> drivetrain.getPigeon2().setYaw(0)),
+      new InstantCommand(() -> arm.setSetpoint(0.22))
+      ),
+      new ParallelCommandGroup(
+      AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS)
+      // new RunCommand(() -> knuckle.setKnuckleMotorHigh()).until(() -> knuckle.hasCoral())
+      ),
+      new ParallelCommandGroup(
+      new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+      new InstantCommand(() -> arm.setSetpoint(kArmL4))
+      ),
+      new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+      new AutoAlignCommand(drivetrain, driveRR, true),
+       new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+      new ParallelCommandGroup( // Travel height
         new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
         new InstantCommand(() -> arm.setSetpoint(0.21))
-        ),
-      AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS),
-       new TransferCommand(elevator, arm, knuckle, hopper),
+      ),
+      AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS)
+      /*new TransferCommand(elevator, arm, knuckle, hopper),
       AutoBuilder.pathfindToPose(kRED4_5, K_CONSTRAINTS),
        new ParallelCommandGroup(
         new AutoAlignCommand(drivetrain, driveRR, false),
