@@ -8,9 +8,6 @@ import static frc.robot.Constants.ReefPoses.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.ArmConstants.*;
 
-import frc.robot.commands.TransferCommand;
-import frc.robot.commands.AutoAlignCommand;
-
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Knuckle;
@@ -18,7 +15,6 @@ import frc.robot.subsystems.Elevator;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -61,7 +57,7 @@ public class AutonomousCommand extends Command {
     };
     return Commands.sequence(
       new ParallelCommandGroup(
-      new InstantCommand(() -> drivetrain.getPigeon2().setYaw(0)),
+      new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
       new InstantCommand(() -> arm.setSetpoint(0.22))
       ),
       new ParallelCommandGroup(
@@ -117,14 +113,20 @@ public class AutonomousCommand extends Command {
     );
   }
   public Command branches10_9_8_7() {
+    poseArrays = new Pose2d[]{
+    isRed() ? kRED10_11 : kBLUE10_11,
+    isRed() ? kREDSOURCELEFT : kBLUESOURCELEFT,
+    isRed() ? kRED8_9 : kBLUE8_9,
+    isRed() ? kRED8_9 : kRED8_9
+    };
     return Commands.sequence(
-      AutoBuilder.pathfindToPose(kRED10_11, K_CONSTRAINTS),
+      AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
       new ParallelCommandGroup(
         new AutoAlignCommand(drivetrain, driveRR, true),
         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
         new InstantCommand(() -> arm.setSetpoint(kArmL4))
         ),
-      AutoBuilder.pathfindToPose(kREDSOURCELEFT, K_CONSTRAINTS)
+      AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS)
     );
   }
 }

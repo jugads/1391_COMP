@@ -88,6 +88,14 @@ public class Constants {
         public static final Pose2d kRED10_11 = new Pose2d(12.14, 2.43, Rotation2d.fromDegrees(60));
         public static final Pose2d kREDSOURCERIGHT = new Pose2d(16.17, 7.1, Rotation2d.fromDegrees(-128));
         public static final Pose2d kREDSOURCELEFT = new Pose2d(16.42, 1, Rotation2d.fromDegrees(128));
+        public static final Pose2d kBLUE0_1 = new Pose2d(6.35, 4.06, Rotation2d.fromDegrees(180)); 
+        public static final Pose2d kBLUE2_3 = new Pose2d(5.41, 2.55, Rotation2d.fromDegrees(120));
+        public static final Pose2d kBLUE4_5 = new Pose2d(3.61, 2.49, Rotation2d.fromDegrees(60));
+        public static final Pose2d kBLUE6_7 = new Pose2d(2.74, 4.02, Rotation2d.fromDegrees(0));
+        public static final Pose2d kBLUE8_9 = new Pose2d(3.59, 5.56, Rotation2d.fromDegrees(-120));
+        public static final Pose2d kBLUE10_11 = new Pose2d(5.41, 5.69, Rotation2d.fromDegrees(-60));
+        public static final Pose2d kBLUESOURCERIGHT = new Pose2d(1.35, 0.95, Rotation2d.fromDegrees(128));
+        public static final Pose2d kBLUESOURCELEFT = new Pose2d(1.34, 7.01, Rotation2d.fromDegrees(-128));
         public static final PathConstraints K_CONSTRAINTS = new PathConstraints(3.0, 3.0, 2*Math.PI, 3*Math.PI);
     }
 }
