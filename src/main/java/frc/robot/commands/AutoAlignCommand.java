@@ -11,59 +11,73 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
+/**
+ * Autonomous alignment command using vision feedback:
+ * - Uses PID control for X and Y positioning
+ * - Aligns to either left or right vision target
+ * - Uses Limelight TX/TY values for position feedback
+ */
 public class AutoAlignCommand extends Command {
-  /** Creates a new DriveToReef. */
+  /** Creates a new AutoAlignCommand */
+  // X control: Higher P gain for distance, small D for stability
   PIDController xController = new PIDController(0.0275, 0., 0.0013);
+  // Y control: Lower gains for lateral movement
   PIDController yController = new PIDController(0.006, 0., 0.0003);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
+  // Determines which camera/target to use for alignment
   boolean aligningLeft;
-
 
   public AutoAlignCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive, boolean aligningLeft) {
     this.drivetrain = drivetrain;
     this.drive = drive;
     this.aligningLeft = aligningLeft;
-    // Use addRequirements() here to declare subsystem dependencies.
+    // Register drivetrain requirement for command scheduling
     addRequirements(this.drivetrain);
   }
 
-  // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    // Target setpoints for alignment:
+    // X: -1.5 meters from target
     xController.setSetpoint(-1.5);
+    // Y: -2.5 meters for left target, -3 meters for right target
     yController.setSetpoint(aligningLeft ? -2.5 : -3);
+    // Allow 0.3m tolerance in both axes
     xController.setTolerance(0.3);
     yController.setTolerance(0.3);
   }
 
-
-  // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    // Calculate velocities using PID and vision feedback
+    // Negative maxSpeed multiplier inverts direction as needed
     drivetrain.setControl(drive
     .withVelocityX(-kMaxSpeed*xController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
     .withVelocityY(-kMaxSpeed * yController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
     .withRotationalRate(0.)
     );
+    // Set alignment state for status tracking
     drivetrain.setAligning(true);
-    }
+  }
 
-  // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    // Stop all movement when command ends
     drivetrain.setControl(drive
     .withVelocityX(0)
     .withVelocityY(0)
     .withRotationalRate(0.)
     );
+    // Clear alignment state
     drivetrain.setAligning(false);
   }
 
-  // Returns true when the command should end.
   @Override
   public boolean isFinished() {
+    // Command completes when either:
+    // - X position is within tolerance
+    // - Target visibility is lost for the selected camera
     return xController.atSetpoint() || (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft());
   }
 }

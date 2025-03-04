@@ -11,32 +11,50 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Elevator;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ElevatorCommand extends Command {
+  // Feedforward controller to compensate for gravity and system dynamics
+  // Parameters: kS (static friction), kG (gravity), kV (velocity)
   ElevatorFeedforward ff = new ElevatorFeedforward(0, 0.070, 1.65);
+  
+  // PID controller for position control
+  // Parameters: kP (proportional), kI (integral), kD (derivative)
   PIDController pid = new PIDController(1.65, 0, 0.02);
+  
   /** Creates a new ElevatorCommand. */
   Elevator elevator;
+  
+  // Constructor: takes elevator subsystem as parameter
   public ElevatorCommand(Elevator elevator) {
     this.elevator = elevator;
-    // Use addRequirements() here to declare subsystem dependencies.
+    // Register this elevator subsystem as a requirement for this command
+    // This prevents multiple commands from controlling the elevator simultaneously
     addRequirements(elevator);
   }
 
-  // Called when the command is initially scheduled.
+  // Initialization method - called once when command starts
   @Override
   public void initialize() {}
 
-  // Called every time the scheduler runs while the command is scheduled.
+  // Main execution loop - called repeatedly while command is running
   @Override
   public void execute() {
-    // elevator.runElevatorUp(0);
-    elevator.runElevatorUp(MathUtil.clamp(ff.calculate(-pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())), -0.6, 1.));
+    // Calculate motor output using feedforward and PID control
+    // 1. pid.calculate gets position error and computes correction
+    // 2. ff.calculate compensates for gravity and system dynamics
+    // 3. MathUtil.clamp limits output between -0.6 (down) and 1.0 (up)
+    elevator.runElevatorUp(MathUtil.clamp(
+      ff.calculate(
+        -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
+      ), 
+      -0.6, 1.
+    ));
   }
 
-  // Called once the command ends or is interrupted.
+  // Cleanup method - called when command ends
   @Override
   public void end(boolean interrupted) {}
 
-  // Returns true when the command should end.
+  // Determines if command should stop running
+  // Returns false to run continuously until explicitly interrupted
   @Override
   public boolean isFinished() {
     return false;

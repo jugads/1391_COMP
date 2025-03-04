@@ -14,13 +14,21 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Elevator;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
+/**
+ * Controls arm position using closed-loop control:
+ * - PID control for position accuracy
+ * - Feedforward for gravity compensation
+ * - Position limits based on elevator state
+ */
 public class ArmCommand extends Command {
   /** Creates a new ArmCommand. */
+  // kS=0.0, kG=0.02, kV=0.0 for basic gravity compensation
   ArmFeedforward ff = new ArmFeedforward(0., 0.02, 0);
   Arm arm;
   Elevator elevator;
+  // Higher P gain (2.0) for quick response, small D gain (0.1) for oscillation damping
   PIDController controller = new PIDController(2., 0, 0.1);
+  
   public ArmCommand(Arm arm, Elevator elevator) {
     this.arm = arm;
     this.elevator = elevator;
@@ -35,12 +43,17 @@ public class ArmCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    // Position limits:
+    // Near elevator transition (±0.05 units): [-0.23, 0.25]
+    // Otherwise: [0.05, 0.25]
     var armSetpoint =  MathUtil.clamp(
     arm.getSetpoint(), 
     (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.05, 
     0.25
     );
     SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
+    
+    // Combine PID and feedforward outputs, scaled to 85% for safety margin
     var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
     arm.runMotor(0.85*(ff.calculate(armSetpoint, pidSpeed)+pidSpeed));
     // arm.runMotor(0.);

@@ -9,35 +9,43 @@ import frc.robot.subsystems.Knuckle;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class KnuckleCommand extends Command {
-  /** Creates a new KnuckleDefault. */
+  // Reference to the Knuckle subsystem that this command will control
   Knuckle knuckle;
+
+  /** Creates a new KnuckleCommand */
   public KnuckleCommand(Knuckle knuckle) {
     this.knuckle = knuckle;
-    // Use addRequirements() here to declare subsystem dependencies.
+    // Register the knuckle subsystem as a requirement
+    // This prevents multiple commands from controlling the knuckle simultaneously
     addRequirements(knuckle);
   }
 
-  // Called when the command is initially scheduled.
+  // Initialization method - called once when the command starts
   @Override
   public void initialize() {}
 
-  // Called every time the scheduler runs while the command is scheduled.
+  // Main execution loop - called repeatedly while command is running
   @Override
   public void execute() {
+    // Check if coral (game piece) is detected
     if (knuckle.hasCoral()) {
+      // If coral is present, run the knuckle motor at low speed
       knuckle.setKnuckleMotorLow();
     }
     else {
+      // If no coral is detected, stop the motor
       knuckle.stopMotor();
     }
+    // Commented out alternative behavior:
     // knuckle.stopMotor();
   }
 
-  // Called once the command ends or is interrupted.
+  // Cleanup method - called when command ends or is interrupted
   @Override
   public void end(boolean interrupted) {}
 
-  // Returns true when the command should end.
+  // Determines if command should stop running
+  // Returns false to run continuously until explicitly interrupted
   @Override
   public boolean isFinished() {
     return false;
