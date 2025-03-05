@@ -27,11 +27,12 @@ public class AutoAlignCommand extends Command {
   SwerveRequest.RobotCentric drive;
   // Determines which camera/target to use for alignment
   boolean aligningLeft;
-
-  public AutoAlignCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive, boolean aligningLeft) {
+  boolean aligningL4;
+  public AutoAlignCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive, boolean aligningLeft, boolean aligningL4) {
     this.drivetrain = drivetrain;
     this.drive = drive;
     this.aligningLeft = aligningLeft;
+    this.aligningL4 = aligningL4;
     // Register drivetrain requirement for command scheduling
     addRequirements(this.drivetrain);
   }

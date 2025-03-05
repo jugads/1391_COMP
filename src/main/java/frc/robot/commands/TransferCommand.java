@@ -61,7 +61,12 @@ public class TransferCommand extends SequentialCommandGroup {
         new InstantCommand(() -> elevator.setSetpoint(kElevTran+0.03)),
         // Keep knuckle running to secure the coral
         new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
+      ).until(() -> arm.getEncoderPosition() > 0.1),
+      new ParallelCommandGroup(
+        new InstantCommand(() -> elevator.setSetpoint(0.3)),
+        new InstantCommand(() -> arm.setSetpoint(0.25))
       )
+
     );
   }
 }

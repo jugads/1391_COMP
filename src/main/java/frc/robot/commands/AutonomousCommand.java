@@ -69,7 +69,7 @@ public class AutonomousCommand extends Command {
       new InstantCommand(() -> arm.setSetpoint(kArmL4))
       ),
       new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
-      new AutoAlignCommand(drivetrain, driveRR, true),
+      new AutoAlignCommand(drivetrain, driveRR, true, true),
        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
       new ParallelCommandGroup( // Travel height
         new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
@@ -122,7 +122,7 @@ public class AutonomousCommand extends Command {
     return Commands.sequence(
       AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
       new ParallelCommandGroup(
-        new AutoAlignCommand(drivetrain, driveRR, true),
+        new AutoAlignCommand(drivetrain, driveRR, true, true),
         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
         new InstantCommand(() -> arm.setSetpoint(kArmL4))
         ),

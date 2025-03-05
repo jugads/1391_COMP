@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -105,9 +106,11 @@ public class RobotContainer {
         // Configure drivetrain default command for field-centric control
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+                drive
+                .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
+                .withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
+                .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
 
@@ -187,10 +190,10 @@ public class RobotContainer {
             )
         );
         new JoystickButton(operator, Constants.OperatorConstants.kAutoAlignLeft).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, true)
+            new AutoAlignCommand(drivetrain, driveRR, true, elevator.getElevatorPosition() > 0.9)
         );
         new JoystickButton(operator, Constants.OperatorConstants.kAutoAlignRight).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, false)
+            new AutoAlignCommand(drivetrain, driveRR, false, elevator.getElevatorPosition()>0.9)
         );
         new JoystickButton(operator, k0degrees).and(joystick.a()).whileTrue(
             AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS)
