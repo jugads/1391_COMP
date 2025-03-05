@@ -114,6 +114,6 @@ public class Constants {
         public static final Pose2d kBLUESOURCELEFT_operatorWall = new Pose2d(1.76, 7.36, Rotation2d.fromDegrees(-52));
         public static final Pose2d kBLUESOURCELEFT_bargeWall = new Pose2d(1.61, 7.49, Rotation2d.fromDegrees(-52));
 
-        public static final PathConstraints K_CONSTRAINTS = new PathConstraints(3.0, 3.0, 2*Math.PI, 3*Math.PI);
+        public static final PathConstraints K_CONSTRAINTS = new PathConstraints(5.41, 3.0, 3*Math.PI, 3*Math.PI);
     }
 }

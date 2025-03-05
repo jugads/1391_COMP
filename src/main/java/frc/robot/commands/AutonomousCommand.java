@@ -17,6 +17,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -58,7 +59,7 @@ public class AutonomousCommand extends Command {
     return Commands.sequence(
       new ParallelCommandGroup(
       new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
-      new InstantCommand(() -> arm.setSetpoint(0.22))
+      new InstantCommand(() -> arm.setSetpoint(0.25))
       ),
       new ParallelCommandGroup(
       AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
@@ -72,8 +73,8 @@ public class AutonomousCommand extends Command {
       new AutoAlignCommand(drivetrain, driveRR, true, true),
        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
       new ParallelCommandGroup( // Travel height
-        new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
-        new InstantCommand(() -> arm.setSetpoint(0.21))
+        new InstantCommand(() -> elevator.setSetpoint(0.4)),
+        new InstantCommand(() -> arm.setSetpoint(0.25))
       ),
       AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS),
       new ParallelCommandGroup(
@@ -176,6 +177,37 @@ public class AutonomousCommand extends Command {
           new InstantCommand(() -> arm.setSetpoint(kArmL4))
           ),
          new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())*/
+    );
+  }
+
+  public Command dodge() {
+    poseArrays = new Pose2d[] {
+      isRed() ? kRED0_1 : kBLUE0_1,
+      isRed() ? new Pose2d(10.878, 7.48, Rotation2d.fromDegrees(180)) : new Pose2d(6.39, 0.58, Rotation2d.fromDegrees(0)),
+      isRed() ? kREDSOURCERIGHT_bargeWall : kBLUESOURCERIGHT_bargeWall
+    };
+    return Commands.sequence(
+      new ParallelCommandGroup(
+        new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+        new InstantCommand(() -> arm.setSetpoint(0.22))
+        ),
+        new ParallelCommandGroup(
+        AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
+        new RunCommand(() -> knuckle.setKnuckleMotorHigh()).until(() -> knuckle.hasCoral())
+        ),
+        new ParallelCommandGroup(
+        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        ),
+        new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+        new AutoAlignCommand(drivetrain, driveRR, true, true),
+         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+        new ParallelCommandGroup( // Travel height
+          new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
+          new InstantCommand(() -> arm.setSetpoint(0.21))
+        ),
+        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS)
     );
   }
 }

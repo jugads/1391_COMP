@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -22,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.ArmCommand;
@@ -64,7 +66,7 @@ public class RobotContainer {
 
     // Telemetry
     private final Telemetry logger = new Telemetry(MaxSpeed);
-
+    Timer timer = new Timer();
     // Controllers
     private final CommandXboxController joystick = new CommandXboxController(0);
     private final Joystick operator = new Joystick(1);
@@ -153,6 +155,17 @@ public class RobotContainer {
         );
         joystick.leftTrigger().whileTrue(
             new TransferCommand(elevator, arm, knuckle, hopper)
+        );
+        joystick.start().whileTrue(
+            new SequentialCommandGroup(
+                new InstantCommand(() -> timer.restart()),
+                drivetrain.applyRequest(() -> driveRR.withVelocityX(-0.75)).until(() -> timer.get() > 1),
+                new ParallelCommandGroup(
+                    new InstantCommand(() -> elevator.setSetpoint(0.4)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))
+                ),
+                new InstantCommand(() -> timer.stop())
+            )
         );
         joystick.povUp().whileTrue(new RunCommand(() -> arm.setSetpoint(0.16)));
         joystick.povDown().whileTrue(new RunCommand(() -> arm.setSetpoint(0.)));
