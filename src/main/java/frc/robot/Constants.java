@@ -30,6 +30,10 @@ public class Constants {
         public static final double kHighSpeed = 1.;
         public static final double kLowSpeed = 0.05;
     }
+    public class ClimberConstants {
+        public static final int kMotorOneID = 10;
+        public static final int kMotorTwoID = 11;
+    }
     public class ChuteConstants {
         public static final int kMotorID = 8;
         public static final double kCurrentThreshold = 30;
@@ -86,17 +90,30 @@ public class Constants {
         public static final Pose2d kRED6_7 = new Pose2d(15, 4, Rotation2d.fromDegrees(180));
         public static final Pose2d kRED8_9 = new Pose2d(14, 2.5, Rotation2d.fromDegrees(120));
         public static final Pose2d kRED10_11 = new Pose2d(12.14, 2.43, Rotation2d.fromDegrees(60));
-        public static final Pose2d kREDSOURCERIGHT = new Pose2d(16.17, 7.1, Rotation2d.fromDegrees(-128));
-        public static final Pose2d kREDSOURCERIGHT_leftAlign = new Pose2d(15.945, 7.40, Rotation2d.fromDegrees(-128));
-        public static final Pose2d kREDSOURCELEFT = new Pose2d(16.42, 1, Rotation2d.fromDegrees(128));
+
+        public static final Pose2d kREDSOURCERIGHT_center = new Pose2d(16.17, 7.1, Rotation2d.fromDegrees(-128));
+        public static final Pose2d kREDSOURCERIGHT_bargeWall = new Pose2d(15.945, 7.40, Rotation2d.fromDegrees(-128));
+        public static final Pose2d kREDSOURCERIGHT_operatorWall = new Pose2d(16.87, 6.516, Rotation2d.fromDegrees(-128));
+        
+        public static final Pose2d kREDSOURCELEFT_center = new Pose2d(16.42, 1, Rotation2d.fromDegrees(128));
+        public static final Pose2d kREDSOURCELEFT_bargeWall = new Pose2d(15.72, 0.85, Rotation2d.fromDegrees(128));
+        public static final Pose2d kREDSOURCELEFT_operatorWall = new Pose2d(16.8, 1.52, Rotation2d.fromDegrees(128));
+
         public static final Pose2d kBLUE0_1 = new Pose2d(6.35, 4.06, Rotation2d.fromDegrees(180)); 
         public static final Pose2d kBLUE2_3 = new Pose2d(5.41, 2.55, Rotation2d.fromDegrees(120));
         public static final Pose2d kBLUE4_5 = new Pose2d(3.61, 2.49, Rotation2d.fromDegrees(60));
         public static final Pose2d kBLUE6_7 = new Pose2d(2.74, 4.02, Rotation2d.fromDegrees(0));
         public static final Pose2d kBLUE8_9 = new Pose2d(3.59, 5.56, Rotation2d.fromDegrees(-120));
         public static final Pose2d kBLUE10_11 = new Pose2d(5.41, 5.69, Rotation2d.fromDegrees(-60));
-        public static final Pose2d kBLUESOURCERIGHT = new Pose2d(1.35, 0.95, Rotation2d.fromDegrees(128));
-        public static final Pose2d kBLUESOURCELEFT = new Pose2d(1.34, 7.01, Rotation2d.fromDegrees(-128));
+
+        public static final Pose2d kBLUESOURCERIGHT_center = new Pose2d(1.35, 0.95, Rotation2d.fromDegrees(52));
+        public static final Pose2d kBLUESOURCERIGHT_bargeWall = new Pose2d(1.76, 0.73, Rotation2d.fromDegrees(52));
+        public static final Pose2d kBLUESOURCERIGHT_operatorWall = new Pose2d(0.73, 1.43, Rotation2d.fromDegrees(52));
+
+        public static final Pose2d kBLUESOURCELEFT_center = new Pose2d(1.34, 7.01, Rotation2d.fromDegrees(-52));
+        public static final Pose2d kBLUESOURCELEFT_operatorWall = new Pose2d(1.76, 7.36, Rotation2d.fromDegrees(-52));
+        public static final Pose2d kBLUESOURCELEFT_bargeWall = new Pose2d(1.61, 7.49, Rotation2d.fromDegrees(-52));
+
         public static final PathConstraints K_CONSTRAINTS = new PathConstraints(3.0, 3.0, 2*Math.PI, 3*Math.PI);
     }
 }

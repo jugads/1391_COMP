@@ -4,16 +4,27 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+import static frc.robot.Constants.ClimberConstants.*;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Climber extends SubsystemBase {
   /** Creates a new Climber. */
+  SparkMax motorOne = new SparkMax(kMotorOneID, MotorType.kBrushless);
+  SparkMax motorTwo = new SparkMax(kMotorTwoID, MotorType.kBrushless);
   public Climber() {
-    
+
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+  }
+  public void runClimber(double speed) {
+    motorOne.set(speed);
+    motorTwo.set(-speed);
   }
 }

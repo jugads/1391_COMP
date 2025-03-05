@@ -108,8 +108,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive
                 .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-                .withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
-                .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -1 : 1))
+                .withVelocityX(-joystick.getLeftY() * MaxSpeed)
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed)
                 .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
@@ -125,7 +125,7 @@ public class RobotContainer {
     private void configureDriverControls() {
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         joystick.a().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
-        joystick.leftBumper().whileTrue(new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()));
+        joystick.leftBumper().onTrue(new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
@@ -136,12 +136,6 @@ public class RobotContainer {
         ).until(() -> algaeScorer.hasAlgae()));
         joystick.b().whileTrue(
             new RunCommand(() -> algaeScorer.score())
-        );
-        joystick.start().whileTrue(
-        new ParallelCommandGroup(
-            new InstantCommand(() -> elevator.setSetpoint(0.4)),
-            new InstantCommand(() -> arm.setSetpoint(0.25))
-        )
         );
         joystick.rightBumper().whileTrue(
             drivetrain.applyRequest(() ->
