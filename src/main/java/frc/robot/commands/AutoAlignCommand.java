@@ -21,9 +21,9 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController xController = new PIDController(0.0275, 0., 0.0013);
+  PIDController distanceController = new PIDController(0.0275, 0., 0.0013);
   // Y control: Lower gains for lateral movement
-  PIDController yController = new PIDController(0.0065, 0., 0.0003);
+  PIDController lateralController = new PIDController(0.0065, 0., 0.0003);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   // Determines which camera/target to use for alignment
@@ -41,11 +41,11 @@ public class AutoAlignCommand extends Command {
   @Override
   public void initialize() {
     // Target setpoints for alignment:
-    xController.setSetpoint(aligningLeft ? (aligningL4 ? 0 : -1) : (aligningL4 ? 0 : 0.6));
-    yController.setSetpoint(aligningL4 ? -3 : -1.);
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? -3 : -1) : (aligningL4 ? -3 : 0.6));
+    lateralController.setSetpoint(aligningL4 ? -3 : -1.);
     // Allow 0.3m tolerance in both axes
-    xController.setTolerance(0.3);
-    yController.setTolerance(0.3);
+    distanceController.setTolerance(0.3);
+    lateralController.setTolerance(0.3);
   }
 
   @Override
@@ -54,8 +54,8 @@ public class AutoAlignCommand extends Command {
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
     drivetrain.setControl(drive
-    .withVelocityX(-kMaxSpeed*xController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
-    .withVelocityY(-kMaxSpeed * yController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
+    .withVelocityX(-kMaxSpeed*distanceController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
+    .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
     .withRotationalRate(0.)
     );
     // Set alignment state for status tracking
@@ -79,6 +79,6 @@ public class AutoAlignCommand extends Command {
     // Command completes when either:
     // - X position is within tolerance
     // - Target visibility is lost for the selected camera
-    return xController.atSetpoint() || (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft());
+    return distanceController.atSetpoint() || (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft());
   }
 }
