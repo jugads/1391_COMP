@@ -24,12 +24,11 @@ import frc.robot.subsystems.Elevator;
  */
 public class ArmCommand extends Command {
   /** Creates a new ArmCommand. */
-  // kS=0.0, kG=0.02, kV=0.0 for basic gravity compensation
-  ArmFeedforward ff = new ArmFeedforward(0., 0.02, 0);
+  ArmFeedforward ff = new ArmFeedforward(0., 0.0125, 0);
   Arm arm;
   Elevator elevator;
   // Higher P gain (2.0) for quick response, small D gain (0.1) for oscillation damping
-  PIDController controller = new PIDController(2., 0, 0.1);
+  PIDController controller = new PIDController(2.6, 0, 0.);
   
   public ArmCommand(Arm arm, Elevator elevator) {
     this.arm = arm;
@@ -40,7 +39,9 @@ public class ArmCommand extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    controller.setTolerance(0.001);
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -57,8 +58,9 @@ public class ArmCommand extends Command {
     
     // Combine PID and feedforward outputs, scaled to 85% for safety margin
     var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
-    // arm.runMotor(0.85*(ff.calculate(armSetpoint, pidSpeed)+pidSpeed));
-    arm.runMotor(0.);
+    if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.31)
+    arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
+    // arm.runMotor(0.);
   }
 
   // Called once the command ends or is interrupted.

@@ -8,6 +8,7 @@ import static frc.robot.Constants.DrivetrainConstants.kMaxSpeed;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -22,7 +23,7 @@ public class AutoAlignCommand extends Command {
   // X control: Higher P gain for distance, small D for stability
   PIDController xController = new PIDController(0.0275, 0., 0.0013);
   // Y control: Lower gains for lateral movement
-  PIDController yController = new PIDController(0.006, 0., 0.0003);
+  PIDController yController = new PIDController(0.0065, 0., 0.0003);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   // Determines which camera/target to use for alignment
@@ -40,8 +41,8 @@ public class AutoAlignCommand extends Command {
   @Override
   public void initialize() {
     // Target setpoints for alignment:
-    xController.setSetpoint(aligningLeft ? (aligningL4 ? 0. : -1) : (aligningL4 ? 0. : 0.6));
-    yController.setSetpoint(0.);
+    xController.setSetpoint(aligningLeft ? (aligningL4 ? 0 : -1) : (aligningL4 ? 0 : 0.6));
+    yController.setSetpoint(aligningL4 ? -3 : -1.);
     // Allow 0.3m tolerance in both axes
     xController.setTolerance(0.3);
     yController.setTolerance(0.3);
@@ -49,6 +50,7 @@ public class AutoAlignCommand extends Command {
 
   @Override
   public void execute() {
+    SmartDashboard.putBoolean("getName()", aligningL4);
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
     drivetrain.setControl(drive

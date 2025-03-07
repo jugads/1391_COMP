@@ -65,6 +65,7 @@ public class Elevator extends SubsystemBase {
     }
   // Returns current elevator position using left motor's encoder
   public double getElevatorPosition() {
-    return MathUtil.clamp((-leftMotor.getEncoder().getPosition()/20.261821746826172), 0, 1);
+    //return -leftMotor.getEncoder().getPosition();
+    return MathUtil.clamp((-leftMotor.getEncoder().getPosition()/20.023731231689453), 0, 1);
   }
 }

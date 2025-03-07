@@ -40,7 +40,7 @@ public class KnuckleCommand extends Command {
       knuckle.stopMotor();
     }
     // Commented out alternative behavior:
-    // knuckle.stopMotor();
+    // knuckle.setKnuckleMotorHigh();
   }
 
   // Cleanup method - called when command ends or is interrupted

@@ -17,7 +17,7 @@ public class ElevatorCommand extends Command {
   
   // PID controller for position control
   // Parameters: kP (proportional), kI (integral), kD (derivative)
-  PIDController pid = new PIDController(1.65, 0, 0.02);
+  PIDController pid = new PIDController(1.65, 0, 0.01);
   
   /** Creates a new ElevatorCommand. */
   Elevator elevator;
@@ -45,7 +45,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      -0.6, 1.
+      -0.4, 1.
     ));
   }
 

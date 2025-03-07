@@ -61,9 +61,9 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
         public static final double kElevL1 = 0.65;
-        public static final double kElevL2 = 0.18; 
-        public static final double kElevL3 = 0.455;
-        public static final double kElevL4 = 0.985;
+        public static final double kElevL2 = 0.12; 
+        public static final double kElevL3 = 0.380001;
+        public static final double kElevL4 = 0.96;
         public static final double kElevTran = 0.405;
     }
     public class ArmConstants{
@@ -76,12 +76,12 @@ public class Constants {
         public static final double kPDynamic = 0.006;
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.00035;
-        public static final double kEncoderOffset = 0.593;
+        public static final double kEncoderOffset = 0.2515;
         public static final double kArmL1 = -0.08;
         public static final double kArmL2 = 0.1849;
         public static final double kArmL3 = 0.1849;
         public static final double kArmL4 = 0.15;
-        public static final double kArmTran = -0.23;
+        public static final double kArmTran = -0.24;
     }
     public class ReefPoses {
         public static final Pose2d kRED0_1 = new Pose2d(11.19, 4.25, Rotation2d.fromDegrees(0));
