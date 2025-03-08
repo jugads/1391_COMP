@@ -130,18 +130,20 @@ public class RobotContainer {
 
     private void configureDriverControls() {
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        joystick.start().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()).until(() -> knuckle.hasCoral()));
+        // joystick.().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
         joystick.leftBumper().onTrue(new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
         joystick.y().whileTrue(new ParallelCommandGroup(
-           new InstantCommand(() -> elevator.setSetpoint(0.6)),
-           new InstantCommand(() -> arm.setSetpoint(0.25)),
-           new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
-        ).until(() -> algaeScorer.hasAlgae()));
+           new InstantCommand(() -> elevator.setSetpoint(0.3)),
+           new InstantCommand(() -> arm.setSetpoint(0.25))
+        ));
         joystick.b().whileTrue(
-            new RunCommand(() -> algaeScorer.score())
+            AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCERIGHT_center : kBLUESOURCERIGHT_center, K_CONSTRAINTS)
+        );
+        joystick.x().whileTrue(
+            AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCELEFT_center : kBLUESOURCELEFT_center, K_CONSTRAINTS)
         );
         joystick.rightBumper().whileTrue(
             drivetrain.applyRequest(() ->
@@ -159,6 +161,7 @@ public class RobotContainer {
         );
         joystick.leftTrigger().whileTrue(
             new TransferCommand(elevator, arm, knuckle, hopper)
+            // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
         );
         joystick.back().whileTrue(
             new SequentialCommandGroup(
@@ -171,8 +174,43 @@ public class RobotContainer {
                 new InstantCommand(() -> timer.stop())
             )
         );
-        joystick.povUp().whileTrue(new RunCommand(() -> arm.setSetpoint(0.16)));
-        joystick.povDown().whileTrue(new RunCommand(() -> arm.setSetpoint(0.)));
+        joystick.povLeft().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(0) // Drive forward with negative Y (forward)
+            .withVelocityY(0.75) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
+        );
+        joystick.povRight().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(0) // Drive forward with negative Y (forward)
+            .withVelocityY(-0.75) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
+        );
+        joystick.povUp().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(0.75) // Drive forward with negative Y (forward)
+            .withVelocityY(0) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
+        );
+        joystick.povDown().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(-0.75) // Drive forward with negative Y (forward)
+            .withVelocityY(0) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
+        );
+        joystick.start().whileTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
     }
 
     private void configureOperatorControls() {
@@ -201,10 +239,10 @@ public class RobotContainer {
             )
         );
         operator.button(kAutoAlignLeft).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, true, elevator.getElevatorPosition() > 0.9)
+            new AutoAlignCommand(drivetrain, driveRR, true, elevator.getElevatorPosition() > 0.9, elevator)
         );
         operator.button(kAutoAlignRight).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, false, elevator.getElevatorPosition()>0.9)
+            new AutoAlignCommand(drivetrain, driveRR, false, elevator.getElevatorPosition()>0.9, elevator)
         );
         operator.button(k0degrees).and(joystick.a()).whileTrue(
             AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS)
@@ -224,17 +262,30 @@ public class RobotContainer {
         operator.button(k300degrees).and(joystick.a()).whileTrue(
             AutoBuilder.pathfindToPose(kRED8_9, K_CONSTRAINTS)
         );
+        //Algae L2
         operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
-            new RunCommand(() -> System.out.println("Algae L2"))
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.2)),
+                new InstantCommand(() -> arm.setSetpoint(0.25)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
         );
+        //Algae l3
         operator.axisLessThan(operator.getXChannel(), -0.99).whileTrue(
-            new RunCommand(() -> System.out.println("Algae L3"))
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.6)),
+                new InstantCommand(() -> arm.setSetpoint(0.25)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
         );
         operator.axisGreaterThan(operator.getYChannel(), 0.99).whileTrue(
             new RunCommand(() -> System.out.println("Processor"))
         );
         operator.axisLessThan(operator.getYChannel(), -0.99).whileTrue(
             new RunCommand(() -> System.out.println("Net"))
+        );
+        operator.axisLessThan(operator.getYChannel(), -0.99).and(joystick.leftBumper()).whileTrue(
+            new RunCommand(() -> algaeScorer.score())
         );
     } 
 

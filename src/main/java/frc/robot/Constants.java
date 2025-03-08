@@ -61,8 +61,8 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
         public static final double kElevL1 = 0.65;
-        public static final double kElevL2 = 0.12; 
-        public static final double kElevL3 = 0.380001;
+        public static final double kElevL2 = 0.13; 
+        public static final double kElevL3 = 0.400001;
         public static final double kElevL4 = 0.96;
         public static final double kElevTran = 0.405;
     }

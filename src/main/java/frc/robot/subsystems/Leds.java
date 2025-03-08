@@ -83,13 +83,13 @@ public class Leds extends SubsystemBase {
       flash(Color.kWhiteSmoke);
     }
     else if (algaeScorer.hasAlgae()) {
-      flash(Color.kAquamarine);
+      flash(Color.kGreen);
     }
     //else if (chute.hasCoral()) {
      // flash(Color.kWhiteSmoke);
    // }
     else if (knuckle.hasCoral() && algaeScorer.hasAlgae()) {
-      flash(Color.kChartreuse);
+      flash(Color.kBisque);
     }
    /* else if (def == false ) {
       flash(Color.kChartreuse);

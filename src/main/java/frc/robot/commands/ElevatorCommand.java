@@ -13,11 +13,11 @@ import frc.robot.subsystems.Elevator;
 public class ElevatorCommand extends Command {
   // Feedforward controller to compensate for gravity and system dynamics
   // Parameters: kS (static friction), kG (gravity), kV (velocity)
-  ElevatorFeedforward ff = new ElevatorFeedforward(0, 0.070, 1.65);
+  ElevatorFeedforward ff = new ElevatorFeedforward(0, 0.050, 1.6);
   
   // PID controller for position control
   // Parameters: kP (proportional), kI (integral), kD (derivative)
-  PIDController pid = new PIDController(1.65, 0, 0.01);
+  PIDController pid = new PIDController(1.6, 0, 0.01);
   
   /** Creates a new ElevatorCommand. */
   Elevator elevator;
@@ -45,7 +45,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      -0.4, 1.
+      -0.6, 1.
     ));
   }
 

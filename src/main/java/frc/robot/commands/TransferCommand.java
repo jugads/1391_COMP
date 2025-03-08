@@ -44,31 +44,29 @@ public class TransferCommand extends SequentialCommandGroup {
       
       // Move arm to transfer position and wait until it's close enough
       new InstantCommand(() -> arm.setSetpoint(kArmTran))
-          .until(() -> arm.getEncoderPosition() < (arm.getSetpoint()+0.0025)),
+          .until(() -> arm.getEncoderPosition() < (arm.getSetpoint()+0.005)),
       
       // Brief pause to ensure stability
-      new WaitCommand(0.4),
+      new WaitCommand(0.25),
       
       // Run hopper and knuckle simultaneously until coral is detected
       new ParallelCommandGroup(
-        new SequentialCommandGroup(
-          new ParallelCommandGroup(
-              new RunCommand(() -> hopper.runBoth(0.6, 1.), hopper)
-          ).until(() -> knuckle.hasCoral()),
-          
-          // Final positioning after coral is acquired
-          new ParallelCommandGroup(
-            // Slightly retract arm
-            new InstantCommand(() -> elevator.increaseSetpoint(0.05)),
-            new InstantCommand(() -> arm.setSetpoint(0.15))
-            // Keep knuckle running to secure the coral
-          ).until(() -> arm.getEncoderPosition() > 0.14)
-          // new ParallelCommandGroup(
-          //   new InstantCommand(() -> elevator.setSetpoint(0.3)),
-          //   new InstantCommand(() -> arm.setSetpoint(0.25))
-          // )
-        ),
+          new RunCommand(() -> hopper.runBoth(0.4, 1.), hopper),
+          new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
+      ).until(() -> knuckle.hasCoral()),
+      
+      // Final positioning after coral is acquired
+      new ParallelCommandGroup(
+        // Slightly retract arm
+        new InstantCommand(() -> arm.setSetpoint(0.15)),
+        // Slightly raise elevator
+        new InstantCommand(() -> elevator.setSetpoint(kElevTran+0.03)),
+        // Keep knuckle running to secure the coral
         new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
+      ).until(() -> arm.getEncoderPosition() > 0.1),
+      new ParallelCommandGroup(
+        new InstantCommand(() -> elevator.setSetpoint(0.3)),
+        new InstantCommand(() -> arm.setSetpoint(0.25))
       )
     );
   }

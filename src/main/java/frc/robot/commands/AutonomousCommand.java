@@ -70,7 +70,7 @@ public class AutonomousCommand extends Command {
       new InstantCommand(() -> arm.setSetpoint(kArmL4))
       ),
       new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
-      new AutoAlignCommand(drivetrain, driveRR, true, true),
+      new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
       new ParallelCommandGroup( // Travel height
         new InstantCommand(() -> elevator.setSetpoint(0.4)),
@@ -135,7 +135,7 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> arm.setSetpoint(kArmL4))
         ),
         new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
-        new AutoAlignCommand(drivetrain, driveRR, true, true),
+        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
          new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
         new ParallelCommandGroup( // Travel height
           new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
@@ -200,7 +200,7 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> arm.setSetpoint(kArmL4))
         ),
         new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
-        new AutoAlignCommand(drivetrain, driveRR, true, true),
+        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
          new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
         new ParallelCommandGroup( // Travel height
           new InstantCommand(() -> elevator.setSetpoint(kElevL3)),

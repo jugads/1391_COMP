@@ -11,6 +11,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Elevator;
 
 /**
  * Autonomous alignment command using vision feedback:
@@ -29,20 +30,20 @@ public class AutoAlignCommand extends Command {
   // Determines which camera/target to use for alignment
   boolean aligningLeft;
   boolean aligningL4;
-  public AutoAlignCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive, boolean aligningLeft, boolean aligningL4) {
+  Elevator elevator;
+  public AutoAlignCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive, boolean aligningLeft, boolean aligningL4, Elevator elevator) {
     this.drivetrain = drivetrain;
     this.drive = drive;
     this.aligningLeft = aligningLeft;
     this.aligningL4 = aligningL4;
+    this.elevator = elevator;
     // Register drivetrain requirement for command scheduling
     addRequirements(this.drivetrain);
   }
 
   @Override
   public void initialize() {
-    // Target setpoints for alignment:
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? -3 : -1) : (aligningL4 ? -3 : 0.6));
-    lateralController.setSetpoint(aligningL4 ? -3 : -1.);
+    
     // Allow 0.3m tolerance in both axes
     distanceController.setTolerance(0.3);
     lateralController.setTolerance(0.3);
@@ -50,7 +51,12 @@ public class AutoAlignCommand extends Command {
 
   @Override
   public void execute() {
+    aligningL4 = this.elevator.getElevatorPosition() > 0.9;
+    // Target setpoints for alignment:
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 3 : 0.6) : (aligningL4 ? 1.75 : 0.));
+    lateralController.setSetpoint(aligningL4 ? -1 : -1.);
     SmartDashboard.putBoolean("getName()", aligningL4);
+    SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
     drivetrain.setControl(drive

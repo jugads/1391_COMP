@@ -239,7 +239,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
             if (Math.abs(getPose().getX() - getLeftLLPose().getX()) > 0.5 || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 0.5)) {
-        pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
+              pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
             }
             else {
             pose.addVisionMeasurement(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()), Utils.getCurrentTimeSeconds()-(m_limelightLeft.getEntry("tl").getDouble(0.))/1000);
