@@ -74,6 +74,7 @@ public class RobotContainer {
     // Controllers
     private final CommandXboxController joystick = new CommandXboxController(0);
     private final CommandJoystick operator = new CommandJoystick(1);
+    private final CommandXboxController manual = new CommandXboxController(2);
 
     // Subsystems
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
@@ -288,6 +289,33 @@ public class RobotContainer {
             new RunCommand(() -> algaeScorer.score())
         );
     } 
+
+    private void configureManualControls() {
+        manual.a().whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
+                new InstantCommand(() -> arm.setSetpoint(kArmL1))
+            )
+        );
+        manual.button(kL2).whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(kElevL2)),
+                new InstantCommand(() -> arm.setSetpoint(kArmL2))
+            )
+        );
+        manual.button(kL3).whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
+                new InstantCommand(() -> arm.setSetpoint(kArmL3))
+            )
+        );
+        operator.button(kL4).whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                new InstantCommand(() -> arm.setSetpoint(kArmL4))
+            )
+        );
+    }
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();

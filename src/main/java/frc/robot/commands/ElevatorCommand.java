@@ -17,7 +17,7 @@ public class ElevatorCommand extends Command {
   
   // PID controller for position control
   // Parameters: kP (proportional), kI (integral), kD (derivative)
-  PIDController pid = new PIDController(1.6, 0, 0.01);
+  PIDController pid = new PIDController(1.6, 0, 0.);
   
   /** Creates a new ElevatorCommand. */
   Elevator elevator;
