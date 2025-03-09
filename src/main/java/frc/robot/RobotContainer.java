@@ -336,7 +336,7 @@ public class RobotContainer {
         );
         manual.rightTrigger().whileTrue(
             new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
-        ); 
+        );
        }
 
     public Command getAutonomousCommand() {
