@@ -8,6 +8,7 @@ import static frc.robot.Constants.DrivetrainConstants.kMaxSpeed;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -53,7 +54,7 @@ public class AutoAlignCommand extends Command {
   public void execute() {
     aligningL4 = this.elevator.getElevatorPosition() > 0.9;
     // Target setpoints for alignment:
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 3 : 0.6) : (aligningL4 ? 1.75 : 0.));
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 2.5 : 0.6) : (aligningL4 ? 1.75 : 0.));
     lateralController.setSetpoint(aligningL4 ? -1 : -1.);
     SmartDashboard.putBoolean("getName()", aligningL4);
     SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());
@@ -85,6 +86,9 @@ public class AutoAlignCommand extends Command {
     // Command completes when either:
     // - X position is within tolerance
     // - Target visibility is lost for the selected camera
-    return distanceController.atSetpoint() || (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft());
+    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || DriverStation.isAutonomous() ? (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 3.) : distanceController.atSetpoint();
+  }
+  public double getMeasurement() {
+    return aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft();
   }
 }

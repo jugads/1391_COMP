@@ -20,6 +20,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -37,6 +39,7 @@ import frc.robot.commands.AutonomousCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AlgaeScorer;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Knuckle;
@@ -84,6 +87,7 @@ public class RobotContainer {
     public final Arm arm = new Arm();
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer, drivetrain);
     public final Hopper hopper = new Hopper();
+    public final Climber climber = new Climber();
     public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
@@ -105,6 +109,8 @@ public class RobotContainer {
         // Configure operator controls
         configureOperatorControls();
 
+        // Configure manual controls
+        configureManualControls();
         // Register telemetry
         drivetrain.registerTelemetry(logger::telemeterize);
     }
@@ -127,6 +133,7 @@ public class RobotContainer {
         algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.2 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new HopperCommand(hopper));
+        climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
     }
 
     private void configureDriverControls() {
@@ -160,10 +167,10 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
-        joystick.leftTrigger().whileTrue(
-            new TransferCommand(elevator, arm, knuckle, hopper)
-            // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
-        );
+        // joystick.leftTrigger().whileTrue(
+        //     new TransferCommand(elevator, arm, knuckle, hopper)
+        //     // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
+        // );
         joystick.back().whileTrue(
             new SequentialCommandGroup(
                 new InstantCommand(() -> timer.restart()),
@@ -291,31 +298,46 @@ public class RobotContainer {
     } 
 
     private void configureManualControls() {
+        // manual.a().whileTrue(
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
+        //         new InstantCommand(() -> arm.setSetpoint(kArmL1))
+        //     )
+        // );
+        // manual.b().whileTrue(
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(kElevL2)),
+        //         new InstantCommand(() -> arm.setSetpoint(kArmL2))
+        //     )
+        // );
+        // manual.y().whileTrue(
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
+        //         new InstantCommand(() -> arm.setSetpoint(kArmL3))
+        //     )
+        // );
+        // manual.x().whileTrue(
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+        //         new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        //     )
+        // );
+        // manual.leftStick().onChange(manual.getLeftTriggerAxis(), 0.9).whileTrue(
+        //     elevator.increaseSetpoint(0.05)
+        // );
+        manual.rightBumper().whileTrue(
+            new RunCommand(() -> climber.runClimber(0.2), climber)
+        );
+        manual.leftBumper().whileTrue(
+            new RunCommand(() -> climber.runClimber(-0.2), climber)
+        );
         manual.a().whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL1))
-            )
+            new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
         );
-        manual.button(kL2).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL2)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL2))
-            )
-        );
-        manual.button(kL3).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL3))
-            )
-        );
-        operator.button(kL4).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL4))
-            )
-        );
-    }
+        manual.rightTrigger().whileTrue(
+            new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
+        ); 
+       }
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
@@ -327,5 +349,8 @@ public class RobotContainer {
     }
     public void inputs() {
         System.out.println(operator.getX());
+    }
+    public void setCoral() {
+        knuckle.setHasCoral();
     }
 }

@@ -25,6 +25,6 @@ public class Climber extends SubsystemBase {
   }
   public void runClimber(double speed) {
     motorOne.set(speed);
-    motorTwo.set(-speed);
+    motorTwo.set(speed);
   }
 }

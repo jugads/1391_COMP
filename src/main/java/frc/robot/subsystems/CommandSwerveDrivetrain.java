@@ -238,7 +238,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
-            if (Math.abs(getPose().getX() - getLeftLLPose().getX()) > 0.5 || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 0.5)) {
+            if (Math.abs(getPose().getX() - getLeftLLPose().getX()) > 0.85 || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 0.85)) {
               pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
             }
             else {

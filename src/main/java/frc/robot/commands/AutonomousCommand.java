@@ -59,19 +59,17 @@ public class AutonomousCommand extends Command {
     return Commands.sequence(
       new ParallelCommandGroup(
       new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
-      new InstantCommand(() -> arm.setSetpoint(0.25))
+      new InstantCommand(() -> arm.setSetpoint(0.25)),
+      new InstantCommand(() -> elevator.setSetpoint(0.))
       ),
       new ParallelCommandGroup(
       AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
-      new RunCommand(() -> knuckle.setKnuckleMotorHigh()).until(() -> knuckle.hasCoral())
-      ),
-      new ParallelCommandGroup(
       new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
       new InstantCommand(() -> arm.setSetpoint(kArmL4))
       ),
       new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
       new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
-       new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+      new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
       new ParallelCommandGroup( // Travel height
         new InstantCommand(() -> elevator.setSetpoint(0.4)),
         new InstantCommand(() -> arm.setSetpoint(0.25))
@@ -189,7 +187,8 @@ public class AutonomousCommand extends Command {
     return Commands.sequence(
       new ParallelCommandGroup(
         new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
-        new InstantCommand(() -> arm.setSetpoint(0.22))
+        new InstantCommand(() -> arm.setSetpoint(0.22)),
+        new InstantCommand(() -> elevator.setSetpoint(0.))
         ),
         new ParallelCommandGroup(
         AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),

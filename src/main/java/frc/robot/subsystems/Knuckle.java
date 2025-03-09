@@ -26,7 +26,7 @@ public class Knuckle extends SubsystemBase {
   // Continuously updates SmartDashboard with coral detection status
   @Override
   public void periodic() {
-    if (motor.getOutputCurrent() >= 22) {
+    if (motor.getOutputCurrent() >= 17) {
       coralCount ++;
     }
     if (scoreCount > 10) {
@@ -34,6 +34,7 @@ public class Knuckle extends SubsystemBase {
       scoreCount = 0;
     }
     SmartDashboard.putNumber("Coral Gripper Current", motor.getOutputCurrent());
+    SmartDashboard.putNumber("Coral Speed", motor.get());
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
     SmartDashboard.putNumber("Coral Count", coralCount);
     // This method will be called once per scheduler run
@@ -45,7 +46,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(-kHighSpeed);
   }
   public boolean hasCoral() {
-    if (coralCount > 5) {
+    if (coralCount > 6) {
       coralState = true;
     }
     else {
@@ -57,6 +58,9 @@ public class Knuckle extends SubsystemBase {
   public void setKnuckleMotorLow() {
     motor.set(-kLowSpeed);
     }
+  public void setHasCoral() {
+    coralCount = 10;
+  }
   public void score() {
     motor.set(1.);
     scoreCount++;

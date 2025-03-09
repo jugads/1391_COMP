@@ -35,7 +35,6 @@ public class TransferCommand extends SequentialCommandGroup {
     this.knuckle = knuckle;
     
     addCommands(
-      knuckle.hasCoral() ? Commands.none() :
       // Move elevator to transfer position
       new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
       
@@ -60,7 +59,7 @@ public class TransferCommand extends SequentialCommandGroup {
         // Slightly retract arm
         new InstantCommand(() -> arm.setSetpoint(0.15)),
         // Slightly raise elevator
-        new InstantCommand(() -> elevator.setSetpoint(kElevTran+0.03)),
+        // new InstantCommand(() -> elevator.setSetpoint(kElevTran+0.03)),
         // Keep knuckle running to secure the coral
         new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
       ).until(() -> arm.getEncoderPosition() > 0.1),
