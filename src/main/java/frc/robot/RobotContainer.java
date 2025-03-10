@@ -304,46 +304,45 @@ public class RobotContainer {
         );
     } 
 
-    private void configureManualControls() {
-        // manual.a().whileTrue(
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
-        //         new InstantCommand(() -> arm.setSetpoint(kArmL1))
-        //     )
-        // );
-        // manual.b().whileTrue(
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(kElevL2)),
-        //         new InstantCommand(() -> arm.setSetpoint(kArmL2))
-        //     )
-        // );
-        // manual.y().whileTrue(
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
-        //         new InstantCommand(() -> arm.setSetpoint(kArmL3))
-        //     )
-        // );
-        // manual.x().whileTrue(
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-        //         new InstantCommand(() -> arm.setSetpoint(kArmL4))
-        //     )
-        // );
-        // manual.leftStick().onChange(manual.getLeftTriggerAxis(), 0.9).whileTrue(
-        //     elevator.increaseSetpoint(0.05)
-        // );
-        manual.rightBumper().whileTrue(
+    private void configureManualControls() {      
+        manual.rightTrigger().whileTrue(
             new RunCommand(() -> climber.runClimber(0.2), climber)
         );
-        manual.leftBumper().whileTrue(
+        manual.leftTrigger().whileTrue(
             new RunCommand(() -> climber.runClimber(-0.2), climber)
         );
-        manual.a().whileTrue(
-            new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
-        );
-        manual.rightTrigger().whileTrue(
+        manual.y().whileTrue(
             new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
         );
+        manual.a().whileTrue(
+            new RunCommand(() -> algaeScorer.score(), algaeScorer)
+        );        
+        manual.x().whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                new InstantCommand(() -> arm.setSetpoint(kArmL4))
+            )
+        );
+        manual.povDown().whileTrue(
+            new RunCommand(() -> hopper.runBoth(-0.5, -1), hopper)
+        );
+        manual.povUp().whileTrue(
+            new RunCommand(() -> hopper.runBoth(0.5, 1), hopper)
+        );
+        // maybe put arm and elevator on sticks?
+        manual.rightBumper().whileTrue(
+            new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
+        );
+        manual.leftBumper().whileTrue(
+            new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
+        );
+        manual.povRight().whileTrue(
+            new RunCommand(() -> arm.increaseSetpoint(0.05), arm)
+        );
+        manual.povLeft().whileTrue(
+            new RunCommand(() -> arm.increaseSetpoint(-0.05), arm)
+        );
+      
        }
 
     public Command getAutonomousCommand() {

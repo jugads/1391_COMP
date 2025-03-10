@@ -6,8 +6,12 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.ElevatorConstants.*;
 
+import java.util.Map;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
@@ -24,6 +28,9 @@ public class Elevator extends SubsystemBase {
   public Elevator() {
     encoder.setInverted(true);
     encoder.setInverted(true);
+    Shuffleboard.getTab("Teleoperated").addNumber("Arm Angle", () -> (getElevatorPosition() * 100))
+        .withWidget(BuiltInWidgets.kNumberBar)
+        .withProperties(Map.of("min", 0., "max", 100., "step", 1.));
   }
 
   // Periodically updates SmartDashboard with elevator status information

@@ -5,9 +5,14 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.ArmConstants.*;
+
+import java.util.Map;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -17,17 +22,20 @@ public class Arm extends SubsystemBase {
   SparkMax motor;
   DutyCycleEncoder encoder;
   double lastPosition;
+  SimpleWidget armVal;
   // Constructor initializes motor and encoder with specified ports from Constants
   public Arm() {
     motor = new SparkMax(kMotorID, MotorType.kBrushless); 
     encoder = new DutyCycleEncoder(kEncoderPort);
     lastPosition = getEncoderPosition();
+    Shuffleboard.getTab("Teleoperated").addNumber("Arm Angle", () -> (getEncoderPosition() * 360))
+        .withWidget(BuiltInWidgets.kNumberBar)
+        .withProperties(Map.of("min", -0.25, "max", 0.4, "step", 0.01));
   }
 
   // Periodic method runs repeatedly, updates dashboard with arm status
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Arm Angle", getEncoderPosition());
     SmartDashboard.putNumber("Arm Speed Motor", motor.get());
     SmartDashboard.putNumber("Voltage", motor.getBusVoltage());
     // setSetpoint(getEncoderPosition());
