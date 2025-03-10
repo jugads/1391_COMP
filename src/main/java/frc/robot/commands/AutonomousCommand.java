@@ -22,9 +22,14 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
@@ -58,26 +63,61 @@ public class AutonomousCommand extends Command {
     };
     return Commands.sequence(
       new ParallelCommandGroup(
-      new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
-      new InstantCommand(() -> arm.setSetpoint(0.25)),
-      new InstantCommand(() -> elevator.setSetpoint(0.))
-      ),
+        new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+        new InstantCommand(() -> arm.setSetpoint(kArmL4)),
+        new InstantCommand(() -> elevator.setSetpoint(0.))
+      ).until(() -> arm.getEncoderPosition() < 0.1875),
+      new WaitCommand(0.1),
       new ParallelCommandGroup(
-      AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
-      new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-      new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
+        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+        new InstantCommand(() -> arm.setSetpoint(kArmL4))
       ),
+
       new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+
       new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+
       new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
-      new ParallelCommandGroup( // Travel height
-        new InstantCommand(() -> elevator.setSetpoint(0.4)),
+
+      new ParallelCommandGroup( // Transfer height
+        new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
         new InstantCommand(() -> arm.setSetpoint(0.25))
       ),
-      AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS),
+      new ParallelRaceGroup(
+        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+        new TransferCommand(elevator, arm, knuckle, hopper)
+      ),
       new ParallelCommandGroup(
-      new TransferCommand(elevator, arm, knuckle, hopper),
-      AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS))
+        new TransferCommand(elevator, arm, knuckle, hopper),
+        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
+      ),
+      new ParallelCommandGroup(
+          new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+          new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+          new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        ),
+        new RunCommand(() -> knuckle.score()).until(() -> !knuckle.hasCoral()),
+
+        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+
+      new ParallelCommandGroup(
+        new TransferCommand(elevator, arm, knuckle, hopper),
+        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
+      ),
+
+      new ConditionalCommand(
+        new ParallelCommandGroup(
+          new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+          new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+          new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        ),
+
+        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+
+        () -> knuckle.hasCoral()
+      )
+
       /* new ParallelCommandGroup(
         new AutoAlignCommand(drivetrain, driveRR, false),
         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
@@ -88,9 +128,9 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
         new InstantCommand(() -> arm.setSetpoint(0.21))
         ),
-      AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS),
+      AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS_Fastest),
        new TransferCommand(elevator, arm, knuckle, hopper),
-      AutoBuilder.pathfindToPose(kRED4_5, K_CONSTRAINTS),
+      AutoBuilder.pathfindToPose(kRED4_5, K_CONSTRAINTS_Fastest),
        new ParallelCommandGroup(
         new AutoAlignCommand(drivetrain, driveRR, true),
         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
@@ -101,9 +141,9 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
         new InstantCommand(() -> arm.setSetpoint(0.21))
        ),
-      AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS),
+      AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS_Fastest),
        new TransferCommand(elevator, arm, knuckle, hopper),
-      AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS),
+      AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS_Fastest),
        new ParallelCommandGroup(
         new AutoAlignCommand(drivetrain, driveRR, false),
         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
@@ -125,7 +165,7 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> arm.setSetpoint(0.22))
         ),
         new ParallelCommandGroup(
-        AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS)
+        AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest)
         // new RunCommand(() -> knuckle.setKnuckleMotorHigh()).until(() -> knuckle.hasCoral())
         ),
         new ParallelCommandGroup(
@@ -139,10 +179,10 @@ public class AutonomousCommand extends Command {
           new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
           new InstantCommand(() -> arm.setSetpoint(0.21))
         ),
-        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
         new ParallelCommandGroup(
         new TransferCommand(elevator, arm, knuckle, hopper),
-        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS))
+        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest))
         /* new ParallelCommandGroup(
           new AutoAlignCommand(drivetrain, driveRR, false),
           new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
@@ -153,9 +193,9 @@ public class AutonomousCommand extends Command {
           new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
           new InstantCommand(() -> arm.setSetpoint(0.21))
           ),
-        AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS_Fastest),
          new TransferCommand(elevator, arm, knuckle, hopper),
-        AutoBuilder.pathfindToPose(kRED4_5, K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(kRED4_5, K_CONSTRAINTS_Fastest),
          new ParallelCommandGroup(
           new AutoAlignCommand(drivetrain, driveRR, true),
           new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
@@ -166,9 +206,9 @@ public class AutonomousCommand extends Command {
           new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
           new InstantCommand(() -> arm.setSetpoint(0.21))
          ),
-        AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(kREDSOURCERIGHT, K_CONSTRAINTS_Fastest),
          new TransferCommand(elevator, arm, knuckle, hopper),
-        AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS_Fastest),
          new ParallelCommandGroup(
           new AutoAlignCommand(drivetrain, driveRR, false),
           new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
@@ -191,7 +231,7 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> elevator.setSetpoint(0.))
         ),
         new ParallelCommandGroup(
-        AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS),
+        AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
         new RunCommand(() -> knuckle.setKnuckleMotorHigh()).until(() -> knuckle.hasCoral())
         ),
         new ParallelCommandGroup(
@@ -205,8 +245,8 @@ public class AutonomousCommand extends Command {
           new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
           new InstantCommand(() -> arm.setSetpoint(0.21))
         ),
-        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS),
-        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS)
+        AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+        AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
     );
   }
 }

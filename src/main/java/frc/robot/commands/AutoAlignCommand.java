@@ -46,15 +46,17 @@ public class AutoAlignCommand extends Command {
   public void initialize() {
     
     // Allow 0.3m tolerance in both axes
-    distanceController.setTolerance(0.3);
+    distanceController.setTolerance(0.5);
     lateralController.setTolerance(0.3);
   }
 
   @Override
   public void execute() {
+    if (!aligningL4) {
     aligningL4 = this.elevator.getElevatorPosition() > 0.9;
+    }
     // Target setpoints for alignment:
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 2.5 : 0.6) : (aligningL4 ? 1.75 : 0.));
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 2.5 : 0.6) : (aligningL4 ? 6. : 0.));
     lateralController.setSetpoint(aligningL4 ? -1 : -1.);
     SmartDashboard.putBoolean("getName()", aligningL4);
     SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());

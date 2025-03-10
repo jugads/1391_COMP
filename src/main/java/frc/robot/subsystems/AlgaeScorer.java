@@ -46,7 +46,7 @@ public class AlgaeScorer extends SubsystemBase {
   }
   public void score() {
     motor.set(-1);
-    algaeCount = 0;
+    algaeCount--;
   }
   // Retrieves the current draw from the motor for algae detection
   public double getAlgaeScorerCurrent() {

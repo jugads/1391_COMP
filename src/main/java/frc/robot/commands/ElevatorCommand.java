@@ -8,6 +8,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.AlgaeScorer;
 import frc.robot.subsystems.Elevator;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class ElevatorCommand extends Command {
@@ -21,10 +22,11 @@ public class ElevatorCommand extends Command {
   
   /** Creates a new ElevatorCommand. */
   Elevator elevator;
-  
+  AlgaeScorer algae;
   // Constructor: takes elevator subsystem as parameter
-  public ElevatorCommand(Elevator elevator) {
+  public ElevatorCommand(Elevator elevator, AlgaeScorer algae) {
     this.elevator = elevator;
+    this.algae = algae;
     // Register this elevator subsystem as a requirement for this command
     // This prevents multiple commands from controlling the elevator simultaneously
     addRequirements(elevator);
@@ -45,7 +47,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      -0.6, 0.8
+      algae.hasAlgae() ? -0.2 : -0.3, algae.hasAlgae() ? 0.3 : 0.5
     ));
   }
 

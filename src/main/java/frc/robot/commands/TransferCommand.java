@@ -53,7 +53,7 @@ public class TransferCommand extends SequentialCommandGroup {
           new RunCommand(() -> hopper.runBoth(0.4, 1.), hopper),
           new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
       ).until(() -> knuckle.hasCoral()),
-      
+      new InstantCommand(() -> elevator.setSetpoint(kElevTran + 0.05)).until(() -> elevator.getElevatorPosition() > (kElevTran+0.01)),
       // Final positioning after coral is acquired
       new ParallelCommandGroup(
         // Slightly retract arm

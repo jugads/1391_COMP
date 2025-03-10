@@ -52,15 +52,18 @@ public class ArmCommand extends Command {
     var armSetpoint =  MathUtil.clamp(
     arm.getSetpoint(), 
     (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : kArmL4, 
-    0.25
+    (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : 0.25
     );
     SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
     
     // Combine PID and feedforward outputs, scaled to 85% for safety margin
     var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
-    if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.31)
+    if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.4) {
     arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
-    // arm.runMotor(0.);
+    }
+    else {
+      arm.runMotor(0.);
+    }
   }
 
   // Called once the command ends or is interrupted.
