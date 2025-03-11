@@ -23,7 +23,7 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.0275, 0., 0.0013);
+  PIDController distanceController = new PIDController(0.0285, 0., 0.0013);
   // Y control: Lower gains for lateral movement
   PIDController lateralController = new PIDController(0.0065, 0., 0.0003);
   CommandSwerveDrivetrain drivetrain;
@@ -46,7 +46,7 @@ public class AutoAlignCommand extends Command {
   public void initialize() {
     
     // Allow 0.3m tolerance in both axes
-    distanceController.setTolerance(0.5);
+    distanceController.setTolerance(0.3);
     lateralController.setTolerance(0.3);
   }
 
@@ -56,7 +56,7 @@ public class AutoAlignCommand extends Command {
     aligningL4 = this.elevator.getElevatorPosition() > 0.9;
     }
     // Target setpoints for alignment:
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 2.5 : 0.6) : (aligningL4 ? 6. : 0.));
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 1. : 3.) : (aligningL4 ? 0. : 1));
     lateralController.setSetpoint(aligningL4 ? -1 : -1.);
     SmartDashboard.putBoolean("getName()", aligningL4);
     SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());

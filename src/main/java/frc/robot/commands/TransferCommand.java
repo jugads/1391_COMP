@@ -39,7 +39,7 @@ public class TransferCommand extends SequentialCommandGroup {
       new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
       
       // Wait until elevator reaches position (within 0.03 units)
-      new WaitUntilCommand(() -> (Math.abs(elevator.getSetpoint()-elevator.getElevatorPosition()) < 0.03)),
+      new WaitUntilCommand(() -> (Math.abs(elevator.getSetpoint()-elevator.getElevatorPosition()) < 0.05)),
       
       // Move arm to transfer position and wait until it's close enough
       new InstantCommand(() -> arm.setSetpoint(kArmTran))

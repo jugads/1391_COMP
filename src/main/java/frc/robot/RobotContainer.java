@@ -306,10 +306,10 @@ public class RobotContainer {
 
     private void configureManualControls() {      
         manual.rightTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(0.2), climber)
+            new RunCommand(() -> climber.runClimber(0.5*manual.getRightTriggerAxis()), climber)
         );
         manual.leftTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(-0.2), climber)
+            new RunCommand(() -> climber.runClimber(-0.5*manual.getLeftTriggerAxis()), climber)
         );
         manual.y().whileTrue(
             new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
@@ -330,18 +330,18 @@ public class RobotContainer {
             new RunCommand(() -> hopper.runBoth(0.5, 1), hopper)
         );
         // maybe put arm and elevator on sticks?
-        manual.rightBumper().whileTrue(
-            new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
-        );
-        manual.leftBumper().whileTrue(
-            new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
-        );
-        manual.povRight().whileTrue(
-            new RunCommand(() -> arm.increaseSetpoint(0.05), arm)
-        );
-        manual.povLeft().whileTrue(
-            new RunCommand(() -> arm.increaseSetpoint(-0.05), arm)
-        );
+        // manual.rightBumper().whileTrue(
+        //     new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
+        // );
+        // manual.leftBumper().whileTrue(
+        //     new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
+        // );
+        // manual.povRight().whileTrue(
+        //     new RunCommand(() -> arm.increaseSetpoint(0.05), arm)
+        // );
+        // manual.povLeft().whileTrue(
+        //     new RunCommand(() -> arm.increaseSetpoint(-0.05), arm)
+        // );
       
        }
 

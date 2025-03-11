@@ -28,7 +28,7 @@ public class Elevator extends SubsystemBase {
   public Elevator() {
     encoder.setInverted(true);
     encoder.setInverted(true);
-    Shuffleboard.getTab("Teleoperated").addNumber("Arm Angle", () -> (getElevatorPosition() * 100))
+    Shuffleboard.getTab("Teleoperated").addNumber("Elevator Position", () -> (getElevatorPosition() * 100))
         .withWidget(BuiltInWidgets.kNumberBar)
         .withProperties(Map.of("min", 0., "max", 100., "step", 1.));
   }
@@ -73,6 +73,6 @@ public class Elevator extends SubsystemBase {
   // Returns current elevator position using left motor's encoder
   public double getElevatorPosition() {
     // return -leftMotor.getEncoder().getPosition();
-    return MathUtil.clamp((-leftMotor.getEncoder().getPosition()/20.261821746826172), 0, 1);
+    return MathUtil.clamp((-leftMotor.getEncoder().getPosition()/20.5951), 0, 1);
   }
 }
