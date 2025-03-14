@@ -364,6 +364,9 @@ public class RobotContainer {
         arm.setSetpoint(arm.getEncoderPosition());
         elevator.setSetpoint(elevator.getElevatorPosition());
     }
+    public void setAutonomousSetpoints() {
+        elevator.setSetpoint(0);
+    }
     public void inputs() {
         System.out.println(operator.getX());
     }

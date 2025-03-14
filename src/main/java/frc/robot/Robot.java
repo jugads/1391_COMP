@@ -88,7 +88,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     m_robotContainer.setCoral();
-    m_robotContainer.setStartingSetpoints();
+    m_robotContainer.setAutonomousSetpoints();
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
