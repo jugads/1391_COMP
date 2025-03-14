@@ -44,7 +44,7 @@ public class Leds extends SubsystemBase {
   @Override
   public void periodic() {
     if (DriverStation.isDisabled()) {
-    LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, DriverStation.getAlliance().get() == Alliance.Blue ? Color.kBlue : Color.kRed);
+    LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
     LEDPattern pattern = base.scrollAtRelativeSpeed(Percent.per(Second).of(99));
 
     pattern.applyTo(buffer);

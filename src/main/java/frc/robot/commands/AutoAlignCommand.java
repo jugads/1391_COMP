@@ -56,7 +56,7 @@ public class AutoAlignCommand extends Command {
     aligningL4 = this.elevator.getElevatorPosition() > 0.9;
     }
     // Target setpoints for alignment:
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 1. : 3.) : (aligningL4 ? 0. : 1));
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 2. : 3.) : (aligningL4 ? 0.6 : 1));
     lateralController.setSetpoint(aligningL4 ? -1 : -1.);
     SmartDashboard.putBoolean("getName()", aligningL4);
     SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());

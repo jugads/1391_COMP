@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import static frc.robot.Constants.ClimberConstants.*;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Climber extends SubsystemBase {
@@ -16,15 +17,27 @@ public class Climber extends SubsystemBase {
   SparkMax motorOne = new SparkMax(kMotorOneID, MotorType.kBrushless);
   SparkMax motorTwo = new SparkMax(kMotorTwoID, MotorType.kBrushless);
   public Climber() {
-
+    motorOne.getEncoder().setPosition(0.);
   }
 
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Climber encoder", getClimberPosition());
     // This method will be called once per scheduler run
   }
   public void runClimber(double speed) {
+    if (getClimberPosition() < 225) {
     motorOne.set(speed);
     motorTwo.set(speed);
+    }
+    else {
+      motorOne.stopMotor();
+      motorTwo.stopMotor();
+    }
   }
+
+public double getClimberPosition() {
+	return motorOne.getEncoder().getPosition();
+}
+  
 }

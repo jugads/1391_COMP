@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -53,6 +54,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     NetworkTable m_limelightRight = NetworkTableInstance.getDefault().getTable("limelight-fright");
     NetworkTable m_limelightLeft = NetworkTableInstance.getDefault().getTable("limelight-fleft");
     private final SwerveRequest.ApplyRobotSpeeds m_ApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
+    private boolean otfFollowing = false;
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
@@ -238,7 +240,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
-            if (Math.abs(getPose().getX() - getLeftLLPose().getX()) > 1. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 1.)) {
+            if ((Math.abs(getPose().getX() - getLeftLLPose().getX()) > 1. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 1.)) && !otfFollowing) {
               pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
             }
             else {
@@ -253,6 +255,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             getPose().getRotation().getRadians(),
         };
         SmartDashboard.putNumberArray("MyPose", array);
+        SmartDashboard.putBoolean("mmm", otfFollowing);
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -311,6 +314,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       }
       public boolean getTVLeft() {
         return m_limelightLeft.getEntry("tv").getDouble(0.) == 1.;
+      }
+      public Command setFollowingPath() {
+        return new InstantCommand(() -> otfFollowing = true);
+      }
+      public Command stopPathFollowState() {
+        return new InstantCommand(() -> otfFollowing = false);
       }
     //   public boolean getTV() {
     //     return m_limelight.getEntry("tv").getDouble(0.0) == 1.0;

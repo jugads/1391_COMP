@@ -48,6 +48,7 @@ import frc.robot.subsystems.Leds;
 import frc.robot.subsystems.Hopper;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.ArmConstants.*;
+import static frc.robot.Constants.ClimberConstants.k90DegreesRotations;
 import static frc.robot.Constants.ReefPoses.*;
 
 import java.nio.file.OpenOption;
@@ -59,7 +60,7 @@ public class RobotContainer {
     private double MaxAngularRate = 3 * Math.PI;
     // Swerve drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1)
+            .withDeadband(MaxSpeed*0.08)
             .withRotationalDeadband(MaxAngularRate * 0.1)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -92,9 +93,9 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public RobotContainer() {
-        if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
-        else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
         autoChooser.addOption("3-4-5-6", autos.branches3_4_5_6());
+        autoChooser.addOption("10-9-8-7", autos.branches10_9_8_7());
+        autoChooser.addOption("0", autos.center0());
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
     }
@@ -168,7 +169,7 @@ public class RobotContainer {
             )
         );
         joystick.leftTrigger().whileTrue(
-            new TransferCommand(elevator, arm, knuckle, hopper)
+            new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
         //     // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
         );
         joystick.back().whileTrue(
@@ -287,11 +288,7 @@ public class RobotContainer {
             )
         );
         operator.axisGreaterThan(operator.getYChannel(), 0.99).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.07)),
-                new InstantCommand(() -> arm.setSetpoint(0.18))
-                // new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
-            )
+            new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
         );
         operator.axisLessThan(operator.getYChannel(), -0.99).whileTrue(
             new SequentialCommandGroup(
@@ -306,13 +303,24 @@ public class RobotContainer {
 
     private void configureManualControls() {      
         manual.rightTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(0.5*manual.getRightTriggerAxis()), climber)
+            new SequentialCommandGroup(
+            new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
+            new InstantCommand(() -> arm.setClimbing()),
+            new InstantCommand(() -> arm.setSetpoint(0.3)),
+            new RunCommand(() -> climber.runClimber(0.5*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations)
+            )
         );
         manual.leftTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(-0.5*manual.getLeftTriggerAxis()), climber)
+            new RunCommand(() -> climber.runClimber(0.6),climber).until(() -> climber.getClimberPosition() > 220)
+        );
+        manual.back().whileTrue(
+            new RunCommand(() -> climber.runClimber(-0.1), climber)
         );
         manual.y().whileTrue(
-            new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.07)),
+                new InstantCommand(() -> arm.setSetpoint(0.18))
+            )
         );
         manual.a().whileTrue(
             new RunCommand(() -> algaeScorer.score(), algaeScorer)
@@ -329,19 +337,22 @@ public class RobotContainer {
         manual.povUp().whileTrue(
             new RunCommand(() -> hopper.runBoth(0.5, 1), hopper)
         );
+        manual.start().whileTrue(
+            new InstantCommand(() -> knuckle.setHasCoral())
+        );
         // maybe put arm and elevator on sticks?
-        // manual.rightBumper().whileTrue(
-        //     new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
-        // );
-        // manual.leftBumper().whileTrue(
-        //     new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
-        // );
-        // manual.povRight().whileTrue(
-        //     new RunCommand(() -> arm.increaseSetpoint(0.05), arm)
-        // );
-        // manual.povLeft().whileTrue(
-        //     new RunCommand(() -> arm.increaseSetpoint(-0.05), arm)
-        // );
+        manual.rightBumper().whileTrue(
+            new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
+        );
+        manual.leftBumper().whileTrue(
+            new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
+        );
+        manual.povRight().whileTrue(
+            new RunCommand(() -> arm.increaseSetpoint(0.005), arm)
+        );
+        manual.povLeft().whileTrue(
+            new RunCommand(() -> arm.increaseSetpoint(-0.005), arm)
+        );
       
        }
 
@@ -358,5 +369,9 @@ public class RobotContainer {
     }
     public void setCoral() {
         knuckle.setHasCoral();
+    }
+    public void setGyro() {
+        if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
+        else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
     }
 }

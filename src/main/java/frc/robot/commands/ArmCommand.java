@@ -52,7 +52,7 @@ public class ArmCommand extends Command {
     var armSetpoint =  MathUtil.clamp(
     arm.getSetpoint(), 
     (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : kArmL4, 
-    (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : 0.25
+    (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : (arm.isClimbing() ? 0.3 : 0.25)
     );
     SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
     

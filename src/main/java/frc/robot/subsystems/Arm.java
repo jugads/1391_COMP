@@ -23,6 +23,7 @@ public class Arm extends SubsystemBase {
   DutyCycleEncoder encoder;
   double lastPosition;
   SimpleWidget armVal;
+  boolean isClimbing = false;
   // Constructor initializes motor and encoder with specified ports from Constants
   public Arm() {
     motor = new SparkMax(kMotorID, MotorType.kBrushless); 
@@ -69,5 +70,12 @@ public class Arm extends SubsystemBase {
 
 public void increaseSetpoint(double d) {
    lastPosition += d; 
+}
+
+public void setClimbing() {
+	isClimbing = true;
+}
+public boolean isClimbing() {
+  return isClimbing;
 }
 }
