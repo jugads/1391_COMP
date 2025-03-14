@@ -57,13 +57,13 @@ public class Elevator extends SubsystemBase {
     return leftMotor.getReverseLimitSwitch().isPressed();
   }
   public double getSetpoint() {
-    return MathUtil.clamp(setpoint, 0., 1.);
+    return setpoint;
   }
   public void increaseSetpoint(double step) {
     setpoint += step;
   }
   public void setSetpoint(double target) {
-    setpoint = target;
+    setpoint = MathUtil.clamp(target, 0., 1.);
   }
   // Controls elevator movement using dual motors for balanced lifting
   public void runElevatorUp(double speed) {

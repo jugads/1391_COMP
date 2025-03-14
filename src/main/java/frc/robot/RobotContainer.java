@@ -362,7 +362,6 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autos.branches3_4_5_6();
     }
-    
     public void setStartingSetpoints() {
         arm.setSetpoint(arm.getEncoderPosition());
         elevator.setSetpoint(elevator.getElevatorPosition());
