@@ -27,6 +27,7 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     m_robotContainer = new RobotContainer();
+    System.out.println("robot init");
     m_robotContainer.setGyro();
     // CameraServer.startAutomaticCapture();
     //  m_visionThread =
@@ -89,6 +90,7 @@ public class Robot extends TimedRobot {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     m_robotContainer.setCoral();
     m_robotContainer.setStartingSetpoints();
+    System.out.println("Auton Init");
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }

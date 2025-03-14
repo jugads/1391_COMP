@@ -69,6 +69,7 @@ public class AutonomousCommand extends Command {
         isRed() ? kRED4_5 : kBLUE4_5
     };
     return Commands.sequence(
+        new InstantCommand(() -> System.out.println("Auto starts")),
         new ParallelCommandGroup(
             new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.))),
         new WaitCommand(0.1),
@@ -298,7 +299,7 @@ public class AutonomousCommand extends Command {
     return Commands.sequence(
       new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
       new InstantCommand(() -> timer.restart()),
-      new RunCommand(() -> drivetrain.setControl(driveRR.withVelocityX(0.75))).until(() -> timer.get() > 2)
+      drivetrain.applyRequest(() -> driveRR.withVelocityX(0.75)).until(() -> timer.get() > 0.5)
     );
   }
 }

@@ -49,6 +49,7 @@ public class ElevatorCommand extends Command {
       ), 
       algae.hasAlgae() ? -0.2 : -0.5, algae.hasAlgae() ? 0.3 : 0.65
     ));
+    System.out.println("dEFAULT Command running");
   }
 
   // Cleanup method - called when command ends

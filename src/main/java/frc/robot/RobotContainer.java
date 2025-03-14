@@ -97,6 +97,7 @@ public class RobotContainer {
         autoChooser.addOption("3-4-5-6", autos.branches3_4_5_6());
         autoChooser.addOption("10-9-8-7", autos.branches10_9_8_7());
         autoChooser.addOption("0", autos.center0());
+        autoChooser.addOption("Drive Straight", autos.driveStraight());
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
     }
@@ -359,7 +360,7 @@ public class RobotContainer {
        }
 
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        return autos.branches3_4_5_6();
     }
     
     public void setStartingSetpoints() {

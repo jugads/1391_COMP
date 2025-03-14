@@ -396,7 +396,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                                     
                 }
                 catch (Exception ex) {
-                    DriverStation.reportError("HAWK TUAH", ex.getStackTrace());
+                    DriverStation.reportError("Error", ex.getStackTrace());
                 }
         }
     /**
