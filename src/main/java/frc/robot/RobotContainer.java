@@ -11,6 +11,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.cscore.VideoSource;
 import edu.wpi.first.wpilibj.AddressableLED;
@@ -304,6 +305,7 @@ public class RobotContainer {
     private void configureManualControls() {      
         manual.rightTrigger().whileTrue(
             new SequentialCommandGroup(
+            new InstantCommand(() -> CameraServer.startAutomaticCapture()),
             new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
             new InstantCommand(() -> arm.setSetpoint(0.3)),
