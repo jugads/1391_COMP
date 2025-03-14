@@ -70,7 +70,7 @@ public class AutonomousCommand extends Command {
       new WaitCommand(0.1),
       new ParallelCommandGroup(
         AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
-        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+        new InstantCommand(() -> elevator.setSetpoint(0.3)),
         new InstantCommand(() -> arm.setSetpoint(kArmL4))
       ),
 
