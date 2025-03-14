@@ -64,7 +64,7 @@ public class Constants {
         public static final double kElevL1 = 0.64;
         public static final double kElevL2 = 0.105; 
         public static final double kElevL3 = 0.39;
-        public static final double kElevL4 = 0.925;
+        public static final double kElevL4 = 0.905;
         public static final double kElevTran = 0.38;
     }
     public class ArmConstants{

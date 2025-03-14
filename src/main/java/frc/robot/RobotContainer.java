@@ -122,8 +122,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive
                 .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-                .withVelocityX(joystick.getLeftY() * MaxSpeed)
-                .withVelocityY(joystick.getLeftX() * MaxSpeed)
+                .withVelocityX(-joystick.getLeftY() * MaxSpeed)
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed)
                 .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
@@ -144,10 +144,10 @@ public class RobotContainer {
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
-        joystick.y().whileTrue(new ParallelCommandGroup(
-           new InstantCommand(() -> elevator.setSetpoint(0.27)),
-           new InstantCommand(() -> arm.setSetpoint(0.25))
-        ));
+        // joystick.y().whileTrue(new ParallelCommandGroup(
+        //    new InstantCommand(() -> elevator.setSetpoint(0.27)),
+        //    new InstantCommand(() -> arm.setSetpoint(0.25))
+        // ));
         joystick.b().whileTrue(
             AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCERIGHT_center : kBLUESOURCERIGHT_center, K_CONSTRAINTS_Fastest)
         );
@@ -168,10 +168,10 @@ public class RobotContainer {
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
-        joystick.leftTrigger().whileTrue(
-            new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
-        //     // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
-        );
+        // joystick.leftTrigger().whileTrue(
+        //     new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
+        // //     // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
+        // );
         joystick.back().whileTrue(
             new SequentialCommandGroup(
                 new InstantCommand(() -> timer.restart()),
@@ -219,7 +219,7 @@ public class RobotContainer {
             .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
         )
         );
-        joystick.start().whileTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        joystick.start().whileTrue(new InstantCommand(() -> setGyro()));
     }
 
     private void configureOperatorControls() {
@@ -307,7 +307,7 @@ public class RobotContainer {
             new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
             new InstantCommand(() -> arm.setSetpoint(0.3)),
-            new RunCommand(() -> climber.runClimber(0.5*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations)
+            new RunCommand(() -> climber.runClimber(0.8*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations)
             )
         );
         manual.leftTrigger().whileTrue(
