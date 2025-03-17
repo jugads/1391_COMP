@@ -29,11 +29,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import static frc.robot.Constants.AlignmentPoses.*;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -241,6 +243,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
+        setTargetBasedOnLL((int)getTIDLeft());
             if ((Math.abs(getPose().getX() - getLeftLLPose().getX()) > 3. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 3.)) && !otfFollowing) {
               pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
             }
@@ -256,7 +259,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             getPose().getRotation().getRadians(),
         };
         SmartDashboard.putNumberArray("MyPose", array);
-        SmartDashboard.putBoolean("mmm", otfFollowing);
+        if (getTVLeft()) {
+          
+        }
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -304,6 +309,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       public void resetPose(Pose2d rpose) {
         pose.resetPose(rpose);
       }
+      public Command setAlignmentPose() {
+        if (getTVLeft()) {
+        return new InstantCommand(() -> pose.resetPose(new Pose2d(getLeftLLPose().getX(), getLeftLLPose().getY(), getPigeon2().getRotation2d())));
+        }
+        else {
+          return Commands.none();
+        }
+      }
       public void resetGyro(double angle) {
         getPigeon2().setYaw(angle);
       }
@@ -315,6 +328,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       }
       public boolean getTVLeft() {
         return m_limelightLeft.getEntry("tv").getDouble(0.) == 1.;
+      }
+      public double getTIDLeft() {
+        return m_limelightLeft.getEntry("tid").getDouble(0);
       }
       public Command setFollowingPath() {
         return new InstantCommand(() -> otfFollowing = true);
@@ -339,6 +355,36 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       }
       public Pose2d getAlignmentTarget(boolean left) {
         return currentAlignmentSide[left ? 0 : 1];
+      }
+      public Pose2d[] setTargetBasedOnLL(int TID) {
+          switch (TID) {
+            default:
+              return new Pose2d[]{new Pose2d(), new Pose2d()};
+            case (10):
+              return kAliRED0_1;
+            case (9):
+              return kAliRED2_3;
+            case (8):
+              return kAliRED4_5;
+            case (7):
+              return kAliRED6_7;
+            case (6):
+              return kAliRED8_9;
+            case (11):
+              return kAliRED10_11;
+            case (21):
+              return kAliBLUE0_1;
+            case (22):
+              return kAliBLUE2_3;
+            case (17):
+              return kAliBLUE4_5;
+            case (18):
+              return kAliBLUE6_7;
+            case (19):
+              return kAliBLUE8_9;
+            case (20):
+              return kAliBLUE10_11;
+            }
       }
     //   public double getTZ() {
     //     return m_limelight.getEntry("ty").getDouble(0.0);

@@ -244,17 +244,23 @@ public class RobotContainer {
             )
         );
         operator.button(kAutoAlignLeft).whileTrue(
+            Commands.sequence(
+            drivetrain.setAlignmentPose(),
             AutoBuilder.pathfindToPose(drivetrain.getAlignmentTarget(true), K_CONSTRAINTS_Fastest)
+            )
         );
         operator.button(kAutoAlignRight).whileTrue(
+            Commands.sequence(
+            drivetrain.setAlignmentPose(),
             AutoBuilder.pathfindToPose(drivetrain.getAlignmentTarget(false), K_CONSTRAINTS_Fastest)
+            )
         );
-        operator.button(k0degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED6_7));
-        operator.button(k60degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED4_5));
-        operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
-        operator.button(k180degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED0_1));
-        operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
-        operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
+        // operator.button(k0degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED6_7));
+        // operator.button(k60degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED4_5));
+        // operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
+        // operator.button(k180degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED0_1));
+        // operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
+        // operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
         //Algae L2
         operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
             new ParallelCommandGroup(
