@@ -243,7 +243,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
-        setTargetBasedOnLL((int)getTIDLeft());
+        setTargetBasedOnLL((int) getTIDLeft());
             if ((Math.abs(getPose().getX() - getLeftLLPose().getX()) > 3. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 3.)) && !otfFollowing) {
               pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
             }
@@ -259,9 +259,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             getPose().getRotation().getRadians(),
         };
         SmartDashboard.putNumberArray("MyPose", array);
-        if (getTVLeft()) {
-          
-        }
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
