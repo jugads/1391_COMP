@@ -35,11 +35,6 @@ public class Constants {
         public static final int kMotorTwoID = 9;
         public static final double k90DegreesRotations = 86.19395446777344;
     }
-    public class ChuteConstants {
-        public static final int kMotorID = 8;
-        public static final double kCurrentThreshold = 30;
-        public static final int kBeamBreakPort = 0;
-    }
     public class HopperConstants {
         public static final int kBeltMotorID = 7;
         public static final int kWheelMotorID = 6;
@@ -124,7 +119,7 @@ public class Constants {
         public static final Pose2d[] kAliRED2_3 = new Pose2d[]{new Pose2d(12.44, 5.3, Rotation2d.fromDegrees(-60)), new Pose2d(12.09, 5.08, Rotation2d.fromDegrees(-60))};
         public static final Pose2d[] kAliRED4_5 = new Pose2d[]{new Pose2d(13.56, 5.37, Rotation2d.fromDegrees(-120)), new Pose2d(13.96, 5.14, Rotation2d.fromDegrees(-120))};
         public static final Pose2d[] kAliRED6_7 = new Pose2d[]{new Pose2d(14.49, 4.25, Rotation2d.fromDegrees(180)), new Pose2d(14.49, 3.86, Rotation2d.fromDegrees(180))};
-        public static final Pose2d[] kAliRED8_9 = new Pose2d[]{new Pose2d(13.70, 2.57, Rotation2d.fromDegrees(60)), new Pose2d(13.99, 2.74, Rotation2d.fromDegrees(0))};
+        public static final Pose2d[] kAliRED8_9 = new Pose2d[]{new Pose2d(13.70, 2.57, Rotation2d.fromDegrees(60)), new Pose2d(13.99, 2.74, Rotation2d.fromDegrees(60))};
         public static final Pose2d[] kAliRED10_11 = new Pose2d[]{new Pose2d(12.16, 2.72, Rotation2d.fromDegrees(120)), new Pose2d(12.46, 2.55, Rotation2d.fromDegrees(120))};
     }
 }

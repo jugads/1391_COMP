@@ -50,7 +50,6 @@ public class ElevatorCommand extends Command {
       ), 
       algae.hasAlgae() || DriverStation.isAutonomous() ? -0.2 : -0.45, algae.hasAlgae() || DriverStation.isAutonomous() ? 0.55 : 0.7
     ));
-    System.out.println("dEFAULT Command running");
   }
 
   // Cleanup method - called when command ends

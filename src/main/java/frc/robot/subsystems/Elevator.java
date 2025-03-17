@@ -9,7 +9,6 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import java.util.Map;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -21,13 +20,10 @@ public class Elevator extends SubsystemBase {
   // Hardware components for controlling the elevator's vertical movement
   SparkMax leftMotor = new SparkMax(kTopMotorID, MotorType.kBrushless);
   SparkMax rightMotor = new SparkMax(kBottomMotorID, MotorType.kBrushless);
-  DutyCycleEncoder encoder = new DutyCycleEncoder(4);
   double setpoint = 0;
   // Limit switches to detect when elevator reaches its boundaries
 
   public Elevator() {
-    encoder.setInverted(true);
-    encoder.setInverted(true);
     Shuffleboard.getTab("Teleoperated").addNumber("Elevator Position", () -> (getElevatorPosition() * 100))
         .withWidget(BuiltInWidgets.kNumberBar)
         .withProperties(Map.of("min", 0., "max", 100., "step", 1.));

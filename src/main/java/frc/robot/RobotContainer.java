@@ -11,13 +11,9 @@ import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.UsbCamera;
-import edu.wpi.first.cscore.VideoSource;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -31,11 +27,9 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.ArmCommand;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.KnuckleCommand;
-import frc.robot.commands.AutoAlignCommand;
 import frc.robot.commands.TransferCommand;
 import frc.robot.commands.AutonomousCommand;
 import frc.robot.generated.TunerConstants;
@@ -52,8 +46,6 @@ import static frc.robot.Constants.ArmConstants.*;
 import static frc.robot.Constants.ClimberConstants.k90DegreesRotations;
 import static frc.robot.Constants.ReefPoses.*;
 import static frc.robot.Constants.AlignmentPoses.*;
-
-import java.nio.file.OpenOption;
 
 import static frc.robot.Constants.OperatorConstants.*;
 public class RobotContainer {
@@ -96,9 +88,9 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public RobotContainer() {
-        autoChooser.addOption("3-4-5-6", autos.branches3_4_5_6());
-        autoChooser.addOption("10-9-8-7", autos.branches10_9_8_7());
-        autoChooser.addOption("0", autos.center0());
+        autoChooser.addOption("Right Side branches 3-4-5-6", autos.branches3_4_5_6());
+        autoChooser.addOption("Left Side branches 10-9-8-7", autos.branches10_9_8_7());
+        autoChooser.addOption("Center branch 0", autos.center0());
         autoChooser.addOption("Drive Straight", autos.driveStraight());
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();

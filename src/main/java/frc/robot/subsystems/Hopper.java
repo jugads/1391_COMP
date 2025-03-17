@@ -8,8 +8,6 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import static frc.robot.Constants.HopperConstants.*;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
@@ -17,18 +15,15 @@ public class Hopper extends SubsystemBase {
   /** Creates a new Hopper. */
   SparkMax beltMotor;
   SparkMax wheelMotor;
-  DigitalInput beambrake;
   double timer = 0;
   public Hopper() {
     beltMotor = new SparkMax(kBeltMotorID, MotorType.kBrushless);
     wheelMotor = new SparkMax(kWheelMotorID, MotorType.kBrushless);
-    beambrake = new DigitalInput(kBeamBreakPort);
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    SmartDashboard.putBoolean("BeamBrake", hasCoralHopper());
+
   }
   public void runBeltMotor(double speed) {
     beltMotor.set(speed);
@@ -56,8 +51,5 @@ public class Hopper extends SubsystemBase {
       beltMotor.set(1.);
       wheelMotor.set(0.2);
     }
-  }
-  public boolean hasCoralHopper() {
-    return !beambrake.get();
   }
 }
