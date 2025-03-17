@@ -51,6 +51,7 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.ArmConstants.*;
 import static frc.robot.Constants.ClimberConstants.k90DegreesRotations;
 import static frc.robot.Constants.ReefPoses.*;
+import static frc.robot.Constants.AlignmentPoses.*;
 
 import java.nio.file.OpenOption;
 
@@ -59,9 +60,10 @@ public class RobotContainer {
     // Drive configuration
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private double MaxAngularRate = 3 * Math.PI;
+    private double gyro = 1;
     // Swerve drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed*0.08)
+            .withDeadband(MaxSpeed*0.15)
             .withRotationalDeadband(MaxAngularRate * 0.1)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -90,7 +92,7 @@ public class RobotContainer {
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer, drivetrain);
     public final Hopper hopper = new Hopper();
     public final Climber climber = new Climber();
-    public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle);
+    public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle, algaeScorer);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public RobotContainer() {
@@ -124,8 +126,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive
                 .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-                .withVelocityX(-joystick.getLeftY() * MaxSpeed)
-                .withVelocityY(-joystick.getLeftX() * MaxSpeed)
+                .withVelocityX(-joystick.getLeftY() * MaxSpeed *gyro)
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed * gyro)
                 .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
@@ -141,8 +143,8 @@ public class RobotContainer {
 
     private void configureDriverControls() {
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        joystick.a().whileTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
-        joystick.leftBumper().onTrue(new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()));
+        joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
+        joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score()), new RunCommand(() -> knuckle.scoreLowSpeed()), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
@@ -221,7 +223,7 @@ public class RobotContainer {
             .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
         )
         );
-        joystick.start().whileTrue(new InstantCommand(() -> setGyro()));
+        joystick.start().whileTrue(new InstantCommand(() -> resetGyro()));
     }
 
     private void configureOperatorControls() {
@@ -250,29 +252,17 @@ public class RobotContainer {
             )
         );
         operator.button(kAutoAlignLeft).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, true, elevator.getElevatorPosition() > 0.9, elevator)
+            AutoBuilder.pathfindToPose(drivetrain.getAlignmentTarget(true), K_CONSTRAINTS_Fastest)
         );
         operator.button(kAutoAlignRight).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, false, elevator.getElevatorPosition()>0.9, elevator)
+            AutoBuilder.pathfindToPose(drivetrain.getAlignmentTarget(false), K_CONSTRAINTS_Fastest)
         );
-        operator.button(k0degrees).and(joystick.a()).whileTrue(
-            AutoBuilder.pathfindToPose(kRED6_7, K_CONSTRAINTS_Fastest)
-        );
-        operator.button(k60degrees).and(joystick.a()).whileTrue(
-            AutoBuilder.pathfindToPose(kRED4_5, K_CONSTRAINTS_Fastest)
-        );
-        operator.button(k120degrees).and(joystick.a()).whileTrue(
-            AutoBuilder.pathfindToPose(kRED2_3, K_CONSTRAINTS_Fastest)
-        );
-        operator.button(k180degrees).and(joystick.a()).whileTrue(
-            AutoBuilder.pathfindToPose(kRED0_1, K_CONSTRAINTS_Fastest)
-        );
-        operator.button(k240degrees).and(joystick.a()).whileTrue(
-            AutoBuilder.pathfindToPose(kRED10_11, K_CONSTRAINTS_Fastest)
-        );
-        operator.button(k300degrees).and(joystick.a()).whileTrue(
-            AutoBuilder.pathfindToPose(kRED8_9, K_CONSTRAINTS_Fastest)
-        );
+        operator.button(k0degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED6_7));
+        operator.button(k60degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED4_5));
+        operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
+        operator.button(k180degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED0_1));
+        operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
+        operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
         //Algae L2
         operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
             new ParallelCommandGroup(
@@ -284,7 +274,7 @@ public class RobotContainer {
         //Algae l3
         operator.axisLessThan(operator.getXChannel(), -0.99).whileTrue(
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.65)),
+                new InstantCommand(() -> elevator.setSetpoint(0.63)),
                 new InstantCommand(() -> arm.setSetpoint(0.19)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
@@ -294,7 +284,7 @@ public class RobotContainer {
         );
         operator.axisLessThan(operator.getYChannel(), -0.99).whileTrue(
             new SequentialCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.9975)).until(() -> elevator.getElevatorPosition() > 0.95),
+                new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
                 new InstantCommand(() -> arm.setSetpoint(0.375))
             )
         );
@@ -306,7 +296,6 @@ public class RobotContainer {
     private void configureManualControls() {      
         manual.rightTrigger().whileTrue(
             new SequentialCommandGroup(
-            new InstantCommand(() -> CameraServer.startAutomaticCapture()),
             new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
             new InstantCommand(() -> arm.setSetpoint(0.3)),
@@ -314,7 +303,7 @@ public class RobotContainer {
             )
         );
         manual.leftTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(0.6),climber).until(() -> climber.getClimberPosition() > 220)
+            new RunCommand(() -> climber.runClimber(0.8), climber).until(() -> climber.getClimberPosition() > 230)
         );
         manual.back().whileTrue(
             new RunCommand(() -> climber.runClimber(-0.1), climber)
@@ -356,11 +345,11 @@ public class RobotContainer {
         manual.povLeft().whileTrue(
             new RunCommand(() -> arm.increaseSetpoint(-0.005), arm)
         );
-      
+        joystick.y().whileTrue(AutoBuilder.pathfindToPose(kAliRED0_1[0], K_CONSTRAINTS_Fastest));
        }
 
     public Command getAutonomousCommand() {
-        return autos.branches3_4_5_6();
+        return autoChooser.getSelected();
     }
     public void setStartingSetpoints() {
         arm.setSetpoint(arm.getEncoderPosition());
@@ -376,4 +365,7 @@ public class RobotContainer {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
         else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
     }
+public void resetGyro() {
+gyro *= -1;
+}
 }

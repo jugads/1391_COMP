@@ -48,6 +48,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
     /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
+    private Pose2d[] currentAlignmentSide = new Pose2d[]{new Pose2d(0,0, new Rotation2d()), new Pose2d(0,0, new Rotation2d())};
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
     private boolean isAligning = false;
@@ -240,7 +241,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
-            if ((Math.abs(getPose().getX() - getLeftLLPose().getX()) > 1. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 1.)) && !otfFollowing) {
+            if ((Math.abs(getPose().getX() - getLeftLLPose().getX()) > 3. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 3.)) && !otfFollowing) {
               pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
             }
             else {
@@ -333,6 +334,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       public boolean isAligning() {
         return isAligning;
       }
+      public Command setAlignmentTarget(Pose2d[] targPose2ds) {
+        return new InstantCommand(() -> currentAlignmentSide = targPose2ds);
+      }
+      public Pose2d getAlignmentTarget(boolean left) {
+        return currentAlignmentSide[left ? 0 : 1];
+      }
     //   public double getTZ() {
     //     return m_limelight.getEntry("ty").getDouble(0.0);
     //   }
@@ -377,7 +384,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                                 ), 
                                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
                                 new PIDConstants(9.0, 0.0, 0.0), // Translation PID constants
-                                new PIDConstants(2.7, 0.0, 0.0)
+                                new PIDConstants(4., 0.0, 0.0)
             ), 
                                 config, 
                                 () -> {

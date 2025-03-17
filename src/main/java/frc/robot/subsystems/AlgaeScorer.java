@@ -16,6 +16,7 @@ public class AlgaeScorer extends SubsystemBase {
   // Motor controller for the algae scoring mechanism
   SparkMax motor;
   double algaeCount = 0;
+  double scoreCount = 0;
   // Constructor initializes the brushless motor with specified ID
   public AlgaeScorer() {
     motor = new SparkMax(kMotorID, MotorType.kBrushless);
@@ -26,6 +27,10 @@ public class AlgaeScorer extends SubsystemBase {
   public void periodic() {
     if (threshold()) {
       algaeCount ++;
+    }
+    if (scoreCount > 4) {
+      algaeCount = 0;
+      scoreCount = 0;
     }
     SmartDashboard.putBoolean("Has Algae", hasAlgae());
     SmartDashboard.putNumber("Algae current", motor.getOutputCurrent());
@@ -46,7 +51,7 @@ public class AlgaeScorer extends SubsystemBase {
   }
   public void score() {
     motor.set(-1);
-    algaeCount--;
+    scoreCount++;
   }
   // Retrieves the current draw from the motor for algae detection
   public double getAlgaeScorerCurrent() {

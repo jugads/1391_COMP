@@ -23,6 +23,7 @@ public class Arm extends SubsystemBase {
   DutyCycleEncoder encoder;
   double lastPosition;
   SimpleWidget armVal;
+  boolean shouldSwing = true;
   boolean isClimbing = false;
   // Constructor initializes motor and encoder with specified ports from Constants
   public Arm() {
@@ -62,15 +63,23 @@ public class Arm extends SubsystemBase {
   public boolean atTransferAngle() {
     return false;
   }
-
+  public void setSwingTrue() {
+    shouldSwing = true;
+  }
+  public void setSwingFalse() {
+    shouldSwing = false;
+  }
+  public boolean getShouldSwing() {
+    return shouldSwing;
+  }
   public void setSetpoint(double encoderPosition) {
     lastPosition = encoderPosition;
   }
   public double getSetpoint() {return lastPosition;}
 
-public void increaseSetpoint(double d) {
-   lastPosition += d; 
-}
+  public void increaseSetpoint(double d) {
+    lastPosition += d; 
+  }
 
 public void setClimbing() {
 	isClimbing = true;

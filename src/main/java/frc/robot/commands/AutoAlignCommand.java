@@ -56,8 +56,9 @@ public class AutoAlignCommand extends Command {
     aligningL4 = this.elevator.getElevatorPosition() > 0.9;
     }
     // Target setpoints for alignment:
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 2. : 3.) : (aligningL4 ? 0.6 : 1));
-    lateralController.setSetpoint(aligningL4 ? -1 : -1.);
+    //Decrease to move closer, increase to move further
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 1.8 : -0.5) : (aligningL4 ? -1.5 : -3.25));
+    lateralController.setSetpoint(aligningL4 ? -1.1 : -1.5);
     SmartDashboard.putBoolean("getName()", aligningL4);
     SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());
     // Calculate velocities using PID and vision feedback

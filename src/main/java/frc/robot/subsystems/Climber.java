@@ -26,7 +26,7 @@ public class Climber extends SubsystemBase {
     // This method will be called once per scheduler run
   }
   public void runClimber(double speed) {
-    if (getClimberPosition() < 225) {
+    if (getClimberPosition() < 240) {
     motorOne.set(speed);
     motorTwo.set(speed);
     }

@@ -7,6 +7,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AlgaeScorer;
 import frc.robot.subsystems.Elevator;
@@ -47,7 +48,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      algae.hasAlgae() ? -0.2 : -0.5, algae.hasAlgae() ? 0.3 : 0.65
+      algae.hasAlgae() || DriverStation.isAutonomous() ? -0.2 : -0.45, algae.hasAlgae() || DriverStation.isAutonomous() ? 0.55 : 0.7
     ));
     System.out.println("dEFAULT Command running");
   }

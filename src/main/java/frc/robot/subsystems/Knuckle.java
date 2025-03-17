@@ -29,7 +29,7 @@ public class Knuckle extends SubsystemBase {
     if (motor.getOutputCurrent() >= 17) {
       coralCount ++;
     }
-    if (scoreCount > 10) {
+    if (scoreCount > 8) {
       coralCount = 0;
       scoreCount = 0;
     }
@@ -46,7 +46,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(kHighSpeed);
   }
   public boolean hasCoral() {
-    if (coralCount > 6) {
+    if (coralCount > 10) {
       coralState = true;
     }
     else {
@@ -59,14 +59,21 @@ public class Knuckle extends SubsystemBase {
     motor.set(kLowSpeed);
     }
   public void setHasCoral() {
-    coralCount = 10;
+    coralCount = 100;
   }
   public void score() {
     motor.set(-1.);
     scoreCount++;
   }
+  public void scoreLowSpeed() {
+    motor.set(-0.3);
+    scoreCount++;
+  }
   public boolean isScoring() {
     return scoreCount > 0;
+  }
+  public void setCoralStateFalse() {
+    coralCount = 0;
   }
   // Retrieves the current draw from the motor for coral detection
   public double getCurrent() {
