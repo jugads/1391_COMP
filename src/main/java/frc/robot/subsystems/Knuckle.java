@@ -18,6 +18,7 @@ public class Knuckle extends SubsystemBase {
   double coralCount;
   boolean coralState = false;
   double scoreCount;
+  boolean shouldReset = true;
   // Constructor initializes the brushless motor with specified ID
   public Knuckle() {
     motor = new SparkMax(kMotorID, MotorType.kBrushless);
@@ -26,19 +27,25 @@ public class Knuckle extends SubsystemBase {
   // Continuously updates SmartDashboard with coral detection status
   @Override
   public void periodic() {
-    if (motor.getOutputCurrent() >= 17) {
+    if (motor.getOutputCurrent() >= 17 && !hasCoral()) {
       coralCount ++;
+    }
+    else if (shouldReset) {
+      coralCount = 0;
     }
     if (scoreCount > 8) {
       coralCount = 0;
       scoreCount = 0;
     }
+    if (hasCoral()) {
+      shouldReset = false;
+    }
+    if (isScoring()) {
+      shouldReset = true;
+    }
     SmartDashboard.putNumber("Coral Gripper Current", motor.getOutputCurrent());
-    SmartDashboard.putNumber("Coral Speed", motor.get());
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
-    SmartDashboard.putNumber("Coral Count", coralCount);
     // This method will be called once per scheduler run
-    //Hello
   }
 
   // Sets the knuckle motor to run at a predefined high speed
@@ -46,20 +53,15 @@ public class Knuckle extends SubsystemBase {
     motor.set(kHighSpeed);
   }
   public boolean hasCoral() {
-    if (coralCount > 10) {
-      coralState = true;
-    }
-    else {
-      coralState = false;
-    }
-    return coralState;
+    return coralCount > 2;
   }
   // Sets the knuckle motor to run at a predefined low speed
   public void setKnuckleMotorLow() {
     motor.set(kLowSpeed);
-    }
+  }
   public void setHasCoral() {
     coralCount = 100;
+    shouldReset = false;
   }
   public void score() {
     motor.set(-1.);

@@ -39,7 +39,7 @@ public class Arm extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm Speed Motor", motor.get());
-    SmartDashboard.putNumber("Voltage", motor.getBusVoltage());
+    SmartDashboard.putBoolean("should wing", shouldSwing);
     // setSetpoint(getEncoderPosition());
     // This method will be called once per scheduler run
   }

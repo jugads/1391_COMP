@@ -28,7 +28,7 @@ public class Constants {
         public static final int kMotorID = 5;
         // public static final double kCurrentThreshold = 75;
         public static final double kHighSpeed = 1.;
-        public static final double kLowSpeed = 0.075;
+        public static final double kLowSpeed = 0.05;
     }
     public class ClimberConstants {
         public static final int kMotorOneID = 8;
@@ -57,8 +57,8 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
         public static final double kElevL1 = 0.57;
-        public static final double kElevL2 = 0.13; 
-        public static final double kElevL3 = 0.415;
+        public static final double kElevL2 = 0.135; 
+        public static final double kElevL3 = 0.42;
         public static final double kElevL4 = 0.95;
         public static final double kElevTran = 0.37;
     }

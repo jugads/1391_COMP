@@ -32,11 +32,7 @@ public class Elevator extends SubsystemBase {
   // Periodically updates SmartDashboard with elevator status information
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Elevator Right Current", rightMotor.getOutputCurrent());
-    SmartDashboard.putNumber("Elevator Left Current", leftMotor.getOutputCurrent());
-    SmartDashboard.putNumber("elevator speed", leftMotor.get());
     SmartDashboard.putNumber("Elevator Position", getElevatorPosition());
-    SmartDashboard.putNumber("Elevator setpoint", getSetpoint());
     if (getElevatorDown()) {
       leftMotor.getEncoder().setPosition(0.);
       leftMotor.getEncoder().setPosition(0.);

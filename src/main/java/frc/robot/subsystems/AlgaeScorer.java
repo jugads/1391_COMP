@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkMax;
 import static frc.robot.Constants.AlgaeScorerConstants.*;
 
@@ -14,12 +15,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class AlgaeScorer extends SubsystemBase {
   // Motor controller for the algae scoring mechanism
-  SparkMax motor;
+  TalonFX motor;
   double algaeCount = 0;
   double scoreCount = 0;
   // Constructor initializes the brushless motor with specified ID
   public AlgaeScorer() {
-    motor = new SparkMax(kMotorID, MotorType.kBrushless);
+    motor = new TalonFX(21);
   }
 
   // Continuously updates SmartDashboard with algae detection status
@@ -33,7 +34,6 @@ public class AlgaeScorer extends SubsystemBase {
       scoreCount = 0;
     }
     SmartDashboard.putBoolean("Has Algae", hasAlgae());
-    SmartDashboard.putNumber("Algae current", motor.getOutputCurrent());
     // This method will be called once per scheduler run
   }
 
@@ -55,12 +55,12 @@ public class AlgaeScorer extends SubsystemBase {
   }
   // Retrieves the current draw from the motor for algae detection
   public double getAlgaeScorerCurrent() {
-    return motor.getOutputCurrent();
+    return motor.getStatorCurrent().getValueAsDouble();
   }
 
   // Determines if algae is present based on motor current threshold
   public boolean threshold() {
-    return getAlgaeScorerCurrent() > kCurrentThreshold;
+    return getAlgaeScorerCurrent() > 40;
   }
   public boolean hasAlgae() {
     return algaeCount > 5;

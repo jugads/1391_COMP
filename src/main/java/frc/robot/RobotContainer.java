@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.wpilibj.AddressableLED;
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -28,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.ArmCommand;
+import frc.robot.commands.AutoAlignCommand;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.KnuckleCommand;
 import frc.robot.commands.TransferCommand;
@@ -127,23 +130,26 @@ public class RobotContainer {
         // Set default commands for other subsystems
         elevator.setDefaultCommand(new ElevatorCommand(elevator, algaeScorer));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
-        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.1 : 0.), algaeScorer));
+        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.055 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
     }
 
     private void configureDriverControls() {
+        joystick.a().whileTrue(
+            new ParallelCommandGroup(
+                new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()),
+                new InstantCommand(() -> arm.setSetpoint(0.25))
+            )
+        );
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
+        // joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
         joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score()), new RunCommand(() -> knuckle.scoreLowSpeed()), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
-        // joystick.y().whileTrue(new ParallelCommandGroup(
-        //    new InstantCommand(() -> elevator.setSetpoint(0.27)),
-        //    new InstantCommand(() -> arm.setSetpoint(0.25))
-        // ));
+        joystick.y().whileTrue(new InstantCommand(() -> joystick.setRumble(RumbleType.kBothRumble, 0.5)));
         joystick.b().whileTrue(
             AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCERIGHT_center : kBLUESOURCERIGHT_center, K_CONSTRAINTS_Fastest)
         );
@@ -244,18 +250,15 @@ public class RobotContainer {
             )
         );
         operator.button(kAutoAlignLeft).whileTrue(
-            Commands.sequence(
-            drivetrain.setAlignmentPose(),
-            AutoBuilder.pathfindToPose(drivetrain.getAlignmentTarget(true), K_CONSTRAINTS_Fastest)
-            )
+            new AutoAlignCommand(drivetrain, driveRR, true, false, elevator)
         );
         operator.button(kAutoAlignRight).whileTrue(
             Commands.sequence(
-            drivetrain.setAlignmentPose(),
-            AutoBuilder.pathfindToPose(drivetrain.getAlignmentTarget(false), K_CONSTRAINTS_Fastest)
+            new AutoAlignCommand(drivetrain, driveRR, false, false, elevator)
             )
         );
-        // operator.button(k0degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED6_7));
+        operator.button(k0degrees).onTrue(new InstantCommand(() -> arm.setSwingFalse()));
+        operator.button(k0degrees).onFalse(new InstantCommand(() -> arm.setSwingTrue()));
         // operator.button(k60degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED4_5));
         // operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
         // operator.button(k180degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED0_1));
@@ -294,14 +297,14 @@ public class RobotContainer {
     private void configureManualControls() {      
         manual.rightTrigger().whileTrue(
             new SequentialCommandGroup(
+            new RunCommand(() -> climber.runClimber(1.*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations),
             new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
-            new InstantCommand(() -> arm.setSetpoint(0.3)),
-            new RunCommand(() -> climber.runClimber(0.8*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations)
+            new InstantCommand(() -> arm.setSetpoint(0.3))
             )
         );
         manual.leftTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(0.8), climber).until(() -> climber.getClimberPosition() > 230)
+            new RunCommand(() -> climber.runClimber(1.), climber).until(() -> climber.getClimberPosition() > 230)
         );
         manual.back().whileTrue(
             new RunCommand(() -> climber.runClimber(-0.1), climber)
@@ -313,13 +316,16 @@ public class RobotContainer {
             )
         );
         manual.a().whileTrue(
-            new RunCommand(() -> algaeScorer.score(), algaeScorer)
+            new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8), algaeScorer)
         );        
         manual.x().whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
                 new InstantCommand(() -> arm.setSetpoint(kArmL4))
             )
+        );
+        manual.b().whileTrue(
+            new RunCommand(() -> knuckle.setKnuckleMotorHigh())
         );
         manual.povDown().whileTrue(
             new RunCommand(() -> hopper.runBoth(-0.5, -1), hopper)
@@ -331,19 +337,18 @@ public class RobotContainer {
             new InstantCommand(() -> knuckle.setHasCoral())
         );
         // maybe put arm and elevator on sticks?
-        manual.rightBumper().whileTrue(
-            new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
-        );
-        manual.leftBumper().whileTrue(
-            new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
-        );
-        manual.povRight().whileTrue(
-            new RunCommand(() -> arm.increaseSetpoint(0.005), arm)
-        );
-        manual.povLeft().whileTrue(
-            new RunCommand(() -> arm.increaseSetpoint(-0.005), arm)
-        );
-        joystick.y().whileTrue(AutoBuilder.pathfindToPose(kAliRED0_1[0], K_CONSTRAINTS_Fastest));
+        // manual.rightBumper().whileTrue(
+        //     new RunCommand(() -> elevator.increaseSetpoint(0.05), elevator)
+        // );
+        // manual.leftBumper().whileTrue(
+        //     new RunCommand(() -> elevator.increaseSetpoint(-0.05), elevator)
+        // );
+        // manual.povRight().whileTrue(
+        //     new RunCommand(() -> arm.increaseSetpoint(0.005), arm)
+        // );
+        // manual.povLeft().whileTrue(
+        //     new RunCommand(() -> arm.increaseSetpoint(-0.005), arm)
+        // );
        }
 
     public Command getAutonomousCommand() {

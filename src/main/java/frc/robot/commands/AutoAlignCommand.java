@@ -5,6 +5,9 @@
 package frc.robot.commands;
 
 import static frc.robot.Constants.DrivetrainConstants.kMaxSpeed;
+
+import java.time.chrono.ThaiBuddhistDate;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -23,9 +26,10 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.0285, 0., 0.0013);
+  PIDController distanceController = new PIDController(0.03575, 0., 0.00025);
   // Y control: Lower gains for lateral movement
   PIDController lateralController = new PIDController(0.0065, 0., 0.0003);
+  PIDController thetaController = new PIDController(0.3, 0., 0.008);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   // Determines which camera/target to use for alignment
@@ -44,7 +48,10 @@ public class AutoAlignCommand extends Command {
 
   @Override
   public void initialize() {
-    
+    SmartDashboard.putData("😊", thetaController);
+    thetaController.enableContinuousInput(-180, 180);
+    // thetaController.setSetpoint(0);
+    thetaController.setTolerance(2);
     // Allow 0.3m tolerance in both axes
     distanceController.setTolerance(0.3);
     lateralController.setTolerance(0.3);
@@ -57,16 +64,36 @@ public class AutoAlignCommand extends Command {
     }
     // Target setpoints for alignment:
     //Decrease to move closer, increase to move further
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 1.8 : -0.5) : (aligningL4 ? -1.5 : -3.25));
+    if (getRot() < 30 && getRot() > -30) {
+      thetaController.setSetpoint(0.);
+    }
+    else if (getRot() < 90 && getRot() > 30) {
+      thetaController.setSetpoint(60.);
+    }
+    else if (getRot() < 150 && getRot() > 90) {
+      thetaController.setSetpoint(120.);
+    }
+    else if (Math.abs(getRot()) > 150) {
+      thetaController.setSetpoint(180.);
+    }
+    else if (getRot() < -90 && getRot() > -150) {
+      thetaController.setSetpoint(-120.);
+    }
+    else {
+      thetaController.setSetpoint(-60);
+    }
+    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 4. : 2.675) : (aligningL4 ? 1.5 : 1.));
     lateralController.setSetpoint(aligningL4 ? -1.1 : -1.5);
-    SmartDashboard.putBoolean("getName()", aligningL4);
-    SmartDashboard.putNumber("DSetpoint", distanceController.getSetpoint());
+    SmartDashboard.putNumber("Output", thetaController.calculate(getRot()));
+    SmartDashboard.putNumber("s", thetaController.getSetpoint());
+    SmartDashboard.putNumber("Rot", getRot());
+    // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
     drivetrain.setControl(drive
     .withVelocityX(-kMaxSpeed*distanceController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
     .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
-    .withRotationalRate(0.)
+    .withRotationalRate(thetaController.calculate(getRot()))
     );
     // Set alignment state for status tracking
     drivetrain.setAligning(true);
@@ -93,5 +120,8 @@ public class AutoAlignCommand extends Command {
   }
   public double getMeasurement() {
     return aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft();
+  }
+  public double getRot() {
+    return drivetrain.getPose().getRotation().getDegrees();
   }
 }

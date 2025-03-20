@@ -259,6 +259,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             getPose().getRotation().getRadians(),
         };
         SmartDashboard.putNumberArray("MyPose", array);
+        // SmartDashboard.putNumber("Rot", getPose().getRotation().getDegrees());
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -351,7 +352,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return new InstantCommand(() -> currentAlignmentSide = targPose2ds);
       }
       public Pose2d getAlignmentTarget(boolean left) {
-        return currentAlignmentSide[left ? 0 : 1];
+        // return currentAlignmentSide[left ? 0 : 1];
+        return kAliBLUE6_7[0];
       }
       public Pose2d[] setTargetBasedOnLL(int TID) {
           switch (TID) {
@@ -426,7 +428,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
                                 ), 
                                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                                new PIDConstants(9.0, 0.0, 0.0), // Translation PID constants
+                                new PIDConstants(15., 0.0, 0.0), // Translation PID constants
                                 new PIDConstants(4., 0.0, 0.0)
             ), 
                                 config, 

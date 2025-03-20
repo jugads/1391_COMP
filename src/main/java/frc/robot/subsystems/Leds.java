@@ -102,9 +102,8 @@ public class Leds extends SubsystemBase {
   }
 
   public void setAll(Color color) {
-    for (int i = 0; i < buffer.getLength(); i++) {
-      buffer.setLED(i, color); // Set all LEDs to red
-    }
+    LEDPattern pattern = LEDPattern.solid(color);
+    pattern.applyTo(buffer);
     leds.setData(buffer);
   }
 
