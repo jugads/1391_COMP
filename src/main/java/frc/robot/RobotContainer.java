@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.ArmCommand;
 import frc.robot.commands.AutoAlignCommand;
+import frc.robot.commands.AutomatedAlgaeCommand;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.KnuckleCommand;
 import frc.robot.commands.TransferCommand;
@@ -141,6 +142,8 @@ public class RobotContainer {
             new ParallelCommandGroup(
                 new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()),
                 new InstantCommand(() -> arm.setSetpoint(0.25))
+            ).andThen(
+                new InstantCommand(() -> algaeScorer.stopMotor(), algaeScorer)
             )
         );
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -250,18 +253,32 @@ public class RobotContainer {
             )
         );
         operator.button(kAutoAlignLeft).whileTrue(
-            new AutoAlignCommand(drivetrain, driveRR, true, false, elevator)
+            Commands.sequence(
+                new AutoAlignCommand(drivetrain, driveRR, true, false, elevator),
+                new InstantCommand(() -> timer.restart()),
+                drivetrain.applyRequest(() -> driveRR.withVelocityX(0.75)).until(() -> timer.get() > 0.25),
+                new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+            )        
         );
         operator.button(kAutoAlignRight).whileTrue(
             Commands.sequence(
-            new AutoAlignCommand(drivetrain, driveRR, false, false, elevator)
+            new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
+            new InstantCommand(() -> timer.restart()),
+            drivetrain.applyRequest(() -> driveRR.withVelocityX(0.75)).until(() -> timer.get() > 0.25),
+            new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
             )
         );
         operator.button(k0degrees).onTrue(new InstantCommand(() -> arm.setSwingFalse()));
         operator.button(k0degrees).onFalse(new InstantCommand(() -> arm.setSwingTrue()));
-        // operator.button(k60degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED4_5));
+        operator.button(k60degrees).whileTrue(new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm));
         // operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
-        // operator.button(k180degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED0_1));
+        operator.button(k180degrees).whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.05)),
+                new InstantCommand(() -> arm.setSetpoint(0.09)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.85))
+            )
+        );
         // operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
         // operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
         //Algae L2

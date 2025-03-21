@@ -8,6 +8,8 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import static frc.robot.Constants.HopperConstants.*;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
@@ -23,10 +25,10 @@ public class Hopper extends SubsystemBase {
 
   @Override
   public void periodic() {
-
+    SmartDashboard.putNumber("Hoper", wheelMotor.get());
   }
   public void runBeltMotor(double speed) {
-    beltMotor.set(speed);
+    beltMotor.set(-speed);
   }
   public void stopBeltMotor() {
     beltMotor.set(0);
@@ -38,7 +40,7 @@ public class Hopper extends SubsystemBase {
     wheelMotor.set(0);
   }
   public void runBoth(double wheelSpeed, double beltSpeed) {
-    beltMotor.set(beltSpeed);
+    beltMotor.set(-beltSpeed);
     wheelMotor.set(wheelSpeed);
   }
   public void setup() {

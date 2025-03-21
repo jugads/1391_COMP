@@ -24,11 +24,11 @@ import frc.robot.subsystems.Elevator;
  */
 public class ArmCommand extends Command {
   /** Creates a new ArmCommand. */
-  ArmFeedforward ff = new ArmFeedforward(0., 0.0125, 0);
+  ArmFeedforward ff = new ArmFeedforward(0., 0.01, 0);
   Arm arm;
   Elevator elevator;
   // Higher P gain (2.0) for quick response, small D gain (0.1) for oscillation damping
-  PIDController controller = new PIDController(2.6, 0, 0.);
+  PIDController controller = new PIDController(2.5, 0, 0.1);
   
   public ArmCommand(Arm arm, Elevator elevator) {
     this.arm = arm;
@@ -41,6 +41,7 @@ public class ArmCommand extends Command {
   @Override
   public void initialize() {
     controller.setTolerance(0.001);
+    SmartDashboard.putData(controller);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -51,7 +52,7 @@ public class ArmCommand extends Command {
     // Otherwise: [0.05, 0.25]
     var armSetpoint =  MathUtil.clamp(
     arm.getSetpoint(), 
-    (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : kArmL4, 
+    (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.08, 
     (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : (arm.isClimbing() ? 0.3 : 0.25)
     );
     SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
@@ -64,6 +65,7 @@ public class ArmCommand extends Command {
     else {
       arm.runMotor(0.);
     }
+    // arm.runMotor(0.);
   }
 
   // Called once the command ends or is interrupted.

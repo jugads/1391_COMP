@@ -33,6 +33,8 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Elevator Position", getElevatorPosition());
+    SmartDashboard.putNumber("Elevator Right", rightMotor.get());
+    SmartDashboard.putNumber("LEft motor", leftMotor.get());
     if (getElevatorDown()) {
       leftMotor.getEncoder().setPosition(0.);
       leftMotor.getEncoder().setPosition(0.);

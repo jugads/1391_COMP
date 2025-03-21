@@ -29,7 +29,7 @@ public class AlgaeScorer extends SubsystemBase {
     if (threshold()) {
       algaeCount ++;
     }
-    if (scoreCount > 4) {
+    if (scoreCount > 5) {
       algaeCount = 0;
       scoreCount = 0;
     }
@@ -63,6 +63,6 @@ public class AlgaeScorer extends SubsystemBase {
     return getAlgaeScorerCurrent() > 40;
   }
   public boolean hasAlgae() {
-    return algaeCount > 5;
+    return algaeCount > 10;
   }
 }

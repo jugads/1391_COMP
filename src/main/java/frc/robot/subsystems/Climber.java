@@ -23,6 +23,7 @@ public class Climber extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Climber encoder", getClimberPosition());
+    SmartDashboard.putNumber("Climber ", motorOne.getAppliedOutput());SmartDashboard.putNumber("Climber 2", motorTwo.getAppliedOutput());
     // This method will be called once per scheduler run
   }
   public void runClimber(double speed) {

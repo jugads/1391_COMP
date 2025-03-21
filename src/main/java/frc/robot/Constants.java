@@ -57,10 +57,10 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
         public static final double kElevL1 = 0.57;
-        public static final double kElevL2 = 0.135; 
-        public static final double kElevL3 = 0.42;
-        public static final double kElevL4 = 0.95;
-        public static final double kElevTran = 0.37;
+        public static final double kElevL2 = 0.105; 
+        public static final double kElevL3 = 0.39;
+        public static final double kElevL4 = 0.93;
+        public static final double kElevTran = 0.35;
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -72,7 +72,7 @@ public class Constants {
         public static final double kPDynamic = 0.006;
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.00035;
-        public static final double kEncoderOffset = 0.2515;
+        public static final double kEncoderOffset = 0.86;
         public static final double kArmL1 = -0.04;
         public static final double kArmL2 = 0.18;
         public static final double kArmL3 = 0.18;
