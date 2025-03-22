@@ -44,13 +44,13 @@ public class ElevatorCommand extends Command {
     // 1. pid.calculate gets position error and computes correction
     // 2. ff.calculate compensates for gravity and system dynamics
     // 3. MathUtil.clamp limits output between -0.6 (down) and 1.0 (up)
-    elevator.runElevatorUp(MathUtil.clamp(
-      ff.calculate(
-        -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
-      ), 
-      algae.hasAlgae() || DriverStation.isAutonomous() ? -0.2 : -0.5, algae.hasAlgae() || DriverStation.isAutonomous() ? 0.55 : 0.7
-    ));
-    // elevator.runElevatorUp(0);
+    // elevator.runElevatorUp(MathUtil.clamp(
+    //   ff.calculate(
+    //     -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
+    //   ), 
+    //   algae.hasAlgae() || DriverStation.isAutonomous() ? -0.2 : -0.5, algae.hasAlgae() || DriverStation.isAutonomous() ? 0.55 : 0.7
+    // ));
+    elevator.runElevatorUp(0);
   }
 
   // Cleanup method - called when command ends

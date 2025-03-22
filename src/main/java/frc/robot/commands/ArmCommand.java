@@ -50,22 +50,22 @@ public class ArmCommand extends Command {
     // Position limits:
     // Near elevator transition (±0.05 units): [-0.23, 0.25]
     // Otherwise: [0.05, 0.25]
-    var armSetpoint =  MathUtil.clamp(
-    arm.getSetpoint(), 
-    (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.08, 
-    (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : (arm.isClimbing() ? 0.3 : 0.25)
-    );
-    SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
+    // var armSetpoint =  MathUtil.clamp(
+    // arm.getSetpoint(), 
+    // (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.08, 
+    // (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : (arm.isClimbing() ? 0.3 : 0.25)
+    // );
+    // SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
     
-    // Combine PID and feedforward outputs, scaled to 85% for safety margin
-    var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
-    if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.4) {
-    arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
-    }
-    else {
-      arm.runMotor(0.);
-    }
-    // arm.runMotor(0.);
+    // // Combine PID and feedforward outputs, scaled to 85% for safety margin
+    // var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
+    // if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.4) {
+    // arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
+    // }
+    // else {
+    //   arm.runMotor(0.);
+    // }
+    arm.runMotor(0.);
   }
 
   // Called once the command ends or is interrupted.

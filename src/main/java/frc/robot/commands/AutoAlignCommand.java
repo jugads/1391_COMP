@@ -20,6 +20,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.Trajectory.State;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,14 +36,13 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.05, 0., 0.00025);
+  PIDController distanceController = new PIDController(1., 0., 0.0);
   // Y control: Lower gains for lateral movement
-  PIDController lateralController = new PIDController(0.0065, 0., 0.0003);
-  PIDController thetaController = new PIDController(0.3, 0., 0.008);
+  PIDController lateralController = new PIDController(0.5, 0., 0.0);
+  PIDController thetaController = new PIDController(0.3, 0., 0.0);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new ApplyRobotSpeeds();
-  HolonomicDriveController controller = new HolonomicDriveController(lateralController, distanceController, new ProfiledPIDController(0.3, 0., 0.008, new Constraints(2, 1)));
   // Determines which camera/target to use for alignment
   boolean aligningLeft;
   boolean aligningL4;
@@ -101,19 +101,11 @@ public class AutoAlignCommand extends Command {
     // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
-    drivetrain.applyRequest(() -> driveChassisSpeeds.withSpeeds(
-      ChassisSpeeds.fromFieldRelativeSpeeds(
-      controller.calculate(
-      new Pose2d(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft(), aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft(), Rotation2d.fromDegrees(getRot())),
-      new Pose2d(distanceController.getSetpoint(), lateralController.getSetpoint(), Rotation2d.fromDegrees(thetaController.getSetpoint())),
-      0.,
-      Rotation2d.fromDegrees(thetaController.getSetpoint())), drivetrain.getPigeon2().getRotation2d() 
-    )));
-    // drivetrain.setControl(drive
-    // .withVelocityX(-kMaxSpeed*distanceController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
-    // .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
-    // .withRotationalRate(thetaController.calculate(getRot()))
-    // );
+    drivetrain.setControl(drive
+    .withVelocityX(-kMaxSpeed*distanceController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
+    .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
+    .withRotationalRate(thetaController.calculate(getRot()))
+    );
     // Set alignment state for status tracking
     drivetrain.setAligning(true);
   }
