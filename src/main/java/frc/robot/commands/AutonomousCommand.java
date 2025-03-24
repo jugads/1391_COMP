@@ -77,7 +77,9 @@ public class AutonomousCommand extends Command {
     new ParallelCommandGroup(
     Commands.sequence(
         new ParallelCommandGroup(
-            new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.))),
+            new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+            new InstantCommand(() -> arm.setSetpoint(0.22))),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.25),
         new ParallelCommandGroup(
             AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
             new InstantCommand(() -> elevator.setSetpoint(kElevL2)),
@@ -107,12 +109,14 @@ public class AutonomousCommand extends Command {
             Commands.sequence(
                 new SequentialCommandGroup(
                     new ParallelCommandGroup(
-                    new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                    new InstantCommand(() -> arm.setSetpoint(kArmL4))).until(() -> elevator.getElevatorPosition() > 0.85),
-                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator)),
-                    
-                new RunCommand(() -> knuckle.score()).until(() -> !knuckle.hasCoral()),
-
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ).until(() -> elevator.getElevatorPosition() > 0.85),
+                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
                 // Piece 3
                 new ParallelCommandGroup( // Transfer height
                     new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
@@ -135,10 +139,14 @@ public class AutonomousCommand extends Command {
             Commands.sequence(
                 new SequentialCommandGroup(
                     new ParallelCommandGroup(
-                    new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                    new InstantCommand(() -> arm.setSetpoint(kArmL4))).until(() -> elevator.getElevatorPosition() > 0.85),
-                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator)),
-                new RunCommand(() -> knuckle.score()).until(() -> !knuckle.hasCoral()),
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ).until(() -> elevator.getElevatorPosition() > 0.85),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+                    new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
 
                 // Piece 3
                 new ParallelCommandGroup( // Transfer height
@@ -209,9 +217,11 @@ public class AutonomousCommand extends Command {
     };
     return new ParallelCommandGroup(
         Commands.sequence(
-            new WaitCommand(0.5),
             new ParallelCommandGroup(
-                new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.))),
+            new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+            new InstantCommand(() -> arm.setSetpoint(0.22))
+            ),
+            new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.25),
             new WaitCommand(0.1),
             new ParallelCommandGroup(
                 AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
@@ -243,8 +253,12 @@ public class AutonomousCommand extends Command {
                     new SequentialCommandGroup(
                     new ParallelCommandGroup(
                     new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                    new InstantCommand(() -> arm.setSetpoint(kArmL4))).until(() -> elevator.getElevatorPosition() > 0.85),
-                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator)
+                    new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ).until(() -> elevator.getElevatorPosition() > 0.85),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+                    new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
                     ),
                     new InstantCommand(() -> arm.setSetpoint(0.14)),
                     new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
@@ -276,7 +290,10 @@ public class AutonomousCommand extends Command {
                         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
                         new InstantCommand(() -> arm.setSetpoint(kArmL4))
                     ).until(() -> elevator.getElevatorPosition() > 0.85),
-                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator)
+                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
                 ),
                 new InstantCommand(() -> arm.setSetpoint(0.14)),
                 new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),

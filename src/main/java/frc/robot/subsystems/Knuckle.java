@@ -27,7 +27,7 @@ public class Knuckle extends SubsystemBase {
   // Continuously updates SmartDashboard with coral detection status
   @Override
   public void periodic() {
-    if (motor.getOutputCurrent() >= 18 && !hasCoral()) {
+    if (motor.getOutputCurrent() >= 17 && !hasCoral()) {
       coralCount ++;
     }
     else if (shouldReset) {
@@ -53,7 +53,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(kHighSpeed);
   }
   public boolean hasCoral() {
-    return coralCount > 2;
+    return coralCount > 6;
   }
   // Sets the knuckle motor to run at a predefined low speed
   public void setKnuckleMotorLow() {
