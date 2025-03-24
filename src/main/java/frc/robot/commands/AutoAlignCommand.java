@@ -36,9 +36,10 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(1., 0., 0.0);
+  PIDController distanceController = new PIDController(0.035, 0., 0.0013);
+  PIDController distanceControllerRight = new PIDController(0.045, 0., 0.0013);
   // Y control: Lower gains for lateral movement
-  PIDController lateralController = new PIDController(0.5, 0., 0.0);
+  PIDController lateralController = new PIDController(0.0065, 0., 0.0003);
   PIDController thetaController = new PIDController(0.3, 0., 0.0);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
@@ -59,7 +60,6 @@ public class AutoAlignCommand extends Command {
 
   @Override
   public void initialize() {
-    SmartDashboard.putData("😊", thetaController);
     thetaController.enableContinuousInput(-180, 180);
     // thetaController.setSetpoint(0);
     thetaController.setTolerance(2);
@@ -93,8 +93,9 @@ public class AutoAlignCommand extends Command {
     else {
       thetaController.setSetpoint(-60);
     }
-    distanceController.setSetpoint(aligningLeft ? (aligningL4 ? 6. : 2.675) : (aligningL4 ? 3 : 1.));
-    lateralController.setSetpoint(aligningL4 ? 2 : -1.5);
+    distanceController.setSetpoint((aligningL4 ? 3.0 : 2.75));
+    distanceControllerRight.setSetpoint((aligningL4 ? 1.5 : 1.));
+    lateralController.setSetpoint(aligningL4 ? 1.5 : -1.5);
     SmartDashboard.putNumber("Output", thetaController.calculate(getRot()));
     SmartDashboard.putNumber("s", thetaController.getSetpoint());
     SmartDashboard.putNumber("Rot", getRot());
@@ -102,7 +103,10 @@ public class AutoAlignCommand extends Command {
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
     drivetrain.setControl(drive
-    .withVelocityX(-kMaxSpeed*distanceController.calculate(aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft()))
+    .withVelocityX(-kMaxSpeed* (aligningLeft ?
+    distanceController.calculate(drivetrain.getTYRight()) :
+    distanceControllerRight.calculate(drivetrain.getTYLeft()))
+    )
     .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
     .withRotationalRate(thetaController.calculate(getRot()))
     );
@@ -127,7 +131,7 @@ public class AutoAlignCommand extends Command {
     // Command completes when either:
     // - X position is within tolerance
     // - Target visibility is lost for the selected camera
-    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || DriverStation.isAutonomous() ? (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 3.) : distanceController.atSetpoint();
+    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || DriverStation.isAutonomous() ? (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 3.) : (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 1.) || distanceController.atSetpoint();
   }
   public double getMeasurement() {
     return aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft();

@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.ArmCommand;
@@ -178,15 +179,16 @@ public class RobotContainer {
         // //     // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
         // );
         joystick.back().whileTrue(
-            new SequentialCommandGroup(
-                new InstantCommand(() -> timer.restart()),
-                drivetrain.applyRequest(() -> driveRR.withVelocityX(-0.75)).until(() -> timer.get() > 0.5),
-                new ParallelCommandGroup(
-                    new InstantCommand(() -> elevator.setSetpoint(0.27)),
-                    new InstantCommand(() -> arm.setSetpoint(0.25))
-                ),
-                new InstantCommand(() -> timer.stop())
-            )
+            // new SequentialCommandGroup(
+            //     new InstantCommand(() -> timer.restart()),
+            //     drivetrain.applyRequest(() -> driveRR.withVelocityX(-0.75)).until(() -> timer.get() > 0.5),
+            //     new ParallelCommandGroup(
+            //         new InstantCommand(() -> elevator.setSetpoint(0.27)),
+            //         new InstantCommand(() -> arm.setSetpoint(0.25))
+            //     ),
+            //     new InstantCommand(() -> timer.stop())
+            // )
+            new InstantCommand(() -> arm.setSetpoint(0.25))
         );
         joystick.povLeft().whileTrue(
             drivetrain.applyRequest(
@@ -224,7 +226,7 @@ public class RobotContainer {
             .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
         )
         );
-        joystick.start().whileTrue(new InstantCommand(() -> resetGyro()));
+        joystick.start().whileTrue(new InstantCommand(() -> arm.setSetpoint(0.15)));
     }
 
     private void configureOperatorControls() {
@@ -255,16 +257,16 @@ public class RobotContainer {
         operator.button(kAutoAlignLeft).whileTrue(
             Commands.sequence(
                 new AutoAlignCommand(drivetrain, driveRR, true, false, elevator),
-                new InstantCommand(() -> timer.restart()),
-                drivetrain.applyRequest(() -> driveRR.withVelocityX(0.75)).until(() -> timer.get() > 0.25),
+                new InstantCommand(() -> arm.setSetpoint(elevator.getElevatorPosition() > 0.8 ? 0.14 : 0.18)),
+                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01),
                 new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
-            )        
+                )
         );
         operator.button(kAutoAlignRight).whileTrue(
             Commands.sequence(
             new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
-            new InstantCommand(() -> timer.restart()),
-            drivetrain.applyRequest(() -> driveRR.withVelocityX(0.75)).until(() -> timer.get() > 0.25),
+            new InstantCommand(() -> arm.setSetpoint(elevator.getElevatorPosition() > 0.8 ? 0.14 : 0.18)),
+            new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01),
             new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
             )
         );
@@ -292,7 +294,7 @@ public class RobotContainer {
         //Algae l3
         operator.axisLessThan(operator.getXChannel(), -0.99).whileTrue(
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.63)),
+                new InstantCommand(() -> elevator.setSetpoint(0.60)),
                 new InstantCommand(() -> arm.setSetpoint(0.19)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
@@ -303,7 +305,7 @@ public class RobotContainer {
         operator.axisLessThan(operator.getYChannel(), -0.99).whileTrue(
             new SequentialCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
-                new InstantCommand(() -> arm.setSetpoint(0.375))
+                new InstantCommand(() -> arm.setSetpoint(0.3517))
             )
         );
         operator.axisLessThan(operator.getYChannel(), -0.99).and(joystick.leftBumper()).whileTrue(
@@ -385,7 +387,7 @@ public class RobotContainer {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
         else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}
     }
-public void resetGyro() {
-gyro *= -1;
-}
+    public void resetGyro() {
+    gyro *= -1;
+    }
 }

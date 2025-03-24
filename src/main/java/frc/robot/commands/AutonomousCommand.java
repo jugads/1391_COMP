@@ -88,6 +88,8 @@ public class AutonomousCommand extends Command {
 
         new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
 
+        new InstantCommand(() -> arm.setSetpoint(0.14)),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
         // Piece 2
         new ParallelCommandGroup( // Transfer height
@@ -221,7 +223,9 @@ public class AutonomousCommand extends Command {
     
             new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
     
-            new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+            new InstantCommand(() -> arm.setSetpoint(0.14)),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
             // Piece 2
             new ParallelCommandGroup( // Transfer height
                 new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
@@ -242,7 +246,9 @@ public class AutonomousCommand extends Command {
                     new InstantCommand(() -> arm.setSetpoint(kArmL4))).until(() -> elevator.getElevatorPosition() > 0.85),
                     new AutoAlignCommand(drivetrain, driveRR, true, true, elevator)
                     ),
-                    new RunCommand(() -> knuckle.score()).until(() -> !knuckle.hasCoral()),
+                    new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
     
                     // Piece 3
                     new ParallelCommandGroup( // Transfer height
@@ -272,7 +278,9 @@ public class AutonomousCommand extends Command {
                     ).until(() -> elevator.getElevatorPosition() > 0.85),
                     new AutoAlignCommand(drivetrain, driveRR, false, true, elevator)
                 ),
-                    new RunCommand(() -> knuckle.score()).until(() -> !knuckle.hasCoral()),
+                new InstantCommand(() -> arm.setSetpoint(0.14)),
+                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
+                new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
     
                     // Piece 3
                     new ParallelCommandGroup( // Transfer height
@@ -313,6 +321,8 @@ public class AutonomousCommand extends Command {
             new InstantCommand(() -> arm.setSetpoint(kArmL4))),
         new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
         new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+        new InstantCommand(() -> arm.setSetpoint(0.14)),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.03),
         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
         new ParallelCommandGroup( // Travel height
             new InstantCommand(() -> elevator.setSetpoint(kElevL3)),

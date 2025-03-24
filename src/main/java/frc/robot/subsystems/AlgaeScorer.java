@@ -60,7 +60,7 @@ public class AlgaeScorer extends SubsystemBase {
 
   // Determines if algae is present based on motor current threshold
   public boolean threshold() {
-    return getAlgaeScorerCurrent() > 40;
+    return getAlgaeScorerCurrent() > 50;
   }
   public boolean hasAlgae() {
     return algaeCount > 10;

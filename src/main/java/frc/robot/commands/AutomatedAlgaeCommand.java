@@ -28,12 +28,15 @@ public class AutomatedAlgaeCommand extends Command {
   boolean isAtLeft;
   double[] algaeL2 = new double[]{17, 19, 21, 6, 8, 10};
   double[] algaeL3 = new double[]{18, 20, 22, 7, 9, 11};
+  boolean secondTimerStarted = false;
   public AutomatedAlgaeCommand(AlgaeScorer algae, CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric driveRR, Elevator elevator, Arm arm) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.algae = algae;
     this.drivetrain = drivetrain;
     this.driveRR = driveRR;
-    addRequirements(algae, drivetrain);
+    this.elevator = elevator;
+    this.arm = arm;
+    addRequirements(algae);
   }
 
   // Called when the command is initially scheduled.
@@ -51,15 +54,35 @@ public class AutomatedAlgaeCommand extends Command {
     else {
       if (Math.abs(drivetrain.getTXLeft()) < Math.abs(drivetrain.getTXRight())) {
         isAtLeft = true;
+        tagID = drivetrain.getTIDRight();
       }
       else if (Math.abs(drivetrain.getTXRight()) < Math.abs(drivetrain.getTXLeft())) {
-        isAtLeft = true;
+        isAtLeft = false;
+        tagID = drivetrain.getTIDLeft();
       }
       else {
         end(true);
       }
     }
     timer.restart();
+    SmartDashboard.putNumber("Tag ID", tagID);
+    if (tagID != 0) {
+      for (int i = 0; i<=5; i++) {
+        if (tagID == algaeL2[i]) {
+          elevator.setSetpoint(0.37);
+          arm.setSetpoint(0.19);
+          break;
+        }
+        else if (tagID == algaeL3[i]) {
+          elevator.setSetpoint(0.60);
+          arm.setSetpoint(0.19);
+          break;
+        }
+        else {
+          continue;
+        }
+      }
+    }
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -71,8 +94,13 @@ public class AutomatedAlgaeCommand extends Command {
     else if (!algae.hasAlgae()){
       drivetrain.setControl(driveRR.withVelocityX(0.75).withVelocityY(0.));
       algae.runAlgaeScorer(0.8);
+      
     }
-    else if (algae.hasAlgae() && timer.get() > 0.5) {
+    else if (algae.hasAlgae()) {
+      if (!secondTimerStarted) {
+        timer.restart();
+        secondTimerStarted = true;
+      }
       drivetrain.setControl(driveRR.withVelocityX(-0.75).withVelocityY(0.));
     }
   }

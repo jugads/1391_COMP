@@ -60,7 +60,7 @@ public class Constants {
         public static final double kElevL2 = 0.105; 
         public static final double kElevL3 = 0.39;
         public static final double kElevL4 = 0.93;
-        public static final double kElevTran = 0.35;
+        public static final double kElevTran = 0.36;
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -74,9 +74,9 @@ public class Constants {
         public static final double kDDynamic = 0.00035;
         public static final double kEncoderOffset = 0.86;
         public static final double kArmL1 = -0.04;
-        public static final double kArmL2 = 0.18;
-        public static final double kArmL3 = 0.18;
-        public static final double kArmL4 = 0.1475;
+        public static final double kArmL2 = 0.22;
+        public static final double kArmL3 = 0.22;
+        public static final double kArmL4 = 0.19;
         public static final double kArmTran = -0.24;
     }
     public class ReefPoses {

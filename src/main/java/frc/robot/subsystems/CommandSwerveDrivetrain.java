@@ -23,6 +23,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -36,8 +37,10 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
-import static frc.robot.Constants.AlignmentPoses.*;
+import com.revrobotics.*;
+import com.revrobotics.Rev2mDistanceSensor.Unit;
 
+import static frc.robot.Constants.AlignmentPoses.*;
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
@@ -46,7 +49,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
-    
+    edu.wpi.first.wpilibj.AnalogInput sensor = new AnalogInput(3);
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
     /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
@@ -241,6 +244,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
+      // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
+      SmartDashboard.putNumber("Distance sensed", getSensorVal());
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
@@ -326,6 +331,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       }
       public boolean getTVLeft() {
         return m_limelightLeft.getEntry("tv").getDouble(0.) == 1.;
+      }
+      public double getSensorVal() {
+        return sensor.getVoltage();
       }
       public double getTIDLeft() {
         return m_limelightLeft.getEntry("tid").getDouble(0);

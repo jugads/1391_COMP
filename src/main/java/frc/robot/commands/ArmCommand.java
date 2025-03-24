@@ -28,7 +28,7 @@ public class ArmCommand extends Command {
   Arm arm;
   Elevator elevator;
   // Higher P gain (2.0) for quick response, small D gain (0.1) for oscillation damping
-  PIDController controller = new PIDController(2.5, 0, 0.1);
+  PIDController controller = new PIDController(2., 0, 0.);
   
   public ArmCommand(Arm arm, Elevator elevator) {
     this.arm = arm;
@@ -41,7 +41,7 @@ public class ArmCommand extends Command {
   @Override
   public void initialize() {
     controller.setTolerance(0.001);
-    SmartDashboard.putData(controller);
+    SmartDashboard.putData("nn",controller);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -50,22 +50,23 @@ public class ArmCommand extends Command {
     // Position limits:
     // Near elevator transition (±0.05 units): [-0.23, 0.25]
     // Otherwise: [0.05, 0.25]
-    // var armSetpoint =  MathUtil.clamp(
-    // arm.getSetpoint(), 
-    // (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.08, 
-    // (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : (arm.isClimbing() ? 0.3 : 0.25)
-    // );
-    // SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
+    // var armSetpoint = arm.getSetpoint();
+    var armSetpoint =  MathUtil.clamp(
+    arm.getSetpoint(), 
+    (Math.abs((kElevTran - elevator.getElevatorPosition())) < 0.05) || (Math.abs((kElevL1 - elevator.getElevatorPosition())) < 0.05) ? -0.23 : 0.08, 
+    (Math.abs((0.99 - elevator.getElevatorPosition())) < 0.03) ? 0.38 : (arm.isClimbing() ? 0.3 : 0.25)
+    );
+    SmartDashboard.putNumber("Arm Setpoint", armSetpoint);
     
     // // Combine PID and feedforward outputs, scaled to 85% for safety margin
-    // var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
-    // if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.4) {
-    // arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
-    // }
-    // else {
-    //   arm.runMotor(0.);
-    // }
-    arm.runMotor(0.);
+    var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
+    if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.4) {
+    arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
+    }
+    else {
+      arm.runMotor(0.);
+    }
+    // arm.runMotor(0.);
   }
 
   // Called once the command ends or is interrupted.
