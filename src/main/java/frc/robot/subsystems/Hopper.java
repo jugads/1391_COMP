@@ -25,7 +25,7 @@ public class Hopper extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Hoper", wheelMotor.get());
+    
   }
   public void runBeltMotor(double speed) {
     beltMotor.set(-speed);

@@ -53,11 +53,11 @@ public class AutomatedAlgaeCommand extends Command {
     }
     else {
       if (Math.abs(drivetrain.getTXLeft()) < Math.abs(drivetrain.getTXRight())) {
-        isAtLeft = true;
+        isAtLeft = false;
         tagID = drivetrain.getTIDRight();
       }
       else if (Math.abs(drivetrain.getTXRight()) < Math.abs(drivetrain.getTXLeft())) {
-        isAtLeft = false;
+        isAtLeft = true;
         tagID = drivetrain.getTIDLeft();
       }
       else {
@@ -65,7 +65,6 @@ public class AutomatedAlgaeCommand extends Command {
       }
     }
     timer.restart();
-    SmartDashboard.putNumber("Tag ID", tagID);
     if (tagID != 0) {
       for (int i = 0; i<=5; i++) {
         if (tagID == algaeL2[i]) {

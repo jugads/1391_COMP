@@ -53,7 +53,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(kHighSpeed);
   }
   public boolean hasCoral() {
-    return coralCount > 6;
+    return coralCount > 2;
   }
   // Sets the knuckle motor to run at a predefined low speed
   public void setKnuckleMotorLow() {

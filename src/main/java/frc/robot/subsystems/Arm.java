@@ -38,8 +38,6 @@ public class Arm extends SubsystemBase {
   // Periodic method runs repeatedly, updates dashboard with arm status
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Arm Speed Motor", motor.get());
-    SmartDashboard.putBoolean("should wing", shouldSwing);
     // setSetpoint(getEncoderPosition());
     // This method will be called once per scheduler run
   }

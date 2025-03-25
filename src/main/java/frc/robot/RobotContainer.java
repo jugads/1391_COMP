@@ -153,7 +153,7 @@ public class RobotContainer {
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
-        joystick.y().whileTrue(new InstantCommand(() -> joystick.setRumble(RumbleType.kBothRumble, 0.5)));
+        joystick.y().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
         joystick.b().whileTrue(
             AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCERIGHT_center : kBLUESOURCERIGHT_center, K_CONSTRAINTS_Fastest)
         );

@@ -60,7 +60,7 @@ public class Constants {
         public static final double kElevL2 = 0.105; 
         public static final double kElevL3 = 0.39;
         public static final double kElevL4 = 0.93;
-        public static final double kElevTran = 0.36;
+        public static final double kElevTran = 0.375;
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -99,7 +99,7 @@ public class Constants {
         public static final Pose2d kBLUE0_1 = new Pose2d(6.35, 4.06, Rotation2d.fromDegrees(180)); 
         public static final Pose2d kBLUE2_3 = new Pose2d(5.69, 1.93, Rotation2d.fromDegrees(120));
         public static final Pose2d kBLUE4_5 = new Pose2d(3.1, 1.75, Rotation2d.fromDegrees(60));
-        public static final Pose2d kBLUE6_7 = new Pose2d(2.74, 4.02, Rotation2d.fromDegrees(0));
+        public static final Pose2d kBLUE6_7 = new Pose2d(2.5, 4.02, Rotation2d.fromDegrees(0));
         public static final Pose2d kBLUE8_9 = new Pose2d(3.18, 6.13, Rotation2d.fromDegrees(-60));
         public static final Pose2d kBLUE10_11 = new Pose2d(5.6, 5.8, Rotation2d.fromDegrees(-120));
 
