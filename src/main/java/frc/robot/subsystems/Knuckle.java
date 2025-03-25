@@ -30,7 +30,7 @@ public class Knuckle extends SubsystemBase {
     if (motor.getOutputCurrent() >= 17 && !hasCoral()) {
       coralCount ++;
     }
-    else if (shouldReset) {
+    else if (shouldReset && motor.getOutputCurrent() == 0) {
       coralCount = 0;
     }
     if (scoreCount > 8) {
@@ -45,6 +45,8 @@ public class Knuckle extends SubsystemBase {
     }
     SmartDashboard.putNumber("Coral Gripper Current", motor.getOutputCurrent());
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
+    SmartDashboard.putBoolean("Should Reset", shouldReset);
+    SmartDashboard.putNumber("Coral Count", coralCount);
     // This method will be called once per scheduler run
   }
 
@@ -53,7 +55,7 @@ public class Knuckle extends SubsystemBase {
     motor.set(kHighSpeed);
   }
   public boolean hasCoral() {
-    return coralCount > 2;
+    return coralCount > 4;
   }
   // Sets the knuckle motor to run at a predefined low speed
   public void setKnuckleMotorLow() {

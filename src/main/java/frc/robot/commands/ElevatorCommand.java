@@ -48,7 +48,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      algae.hasAlgae() || DriverStation.isAutonomous() ? -0.2 : -0.6, algae.hasAlgae() || DriverStation.isAutonomous() ? 0.55 : 0.7
+      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.4 : 0.7
     ));
     // elevator.runElevatorUp(0);
   }

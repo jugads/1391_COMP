@@ -94,7 +94,7 @@ public class AutoAlignCommand extends Command {
     else {
       thetaController.setSetpoint(-60);
     }
-    distanceController.setSetpoint((aligningL4 ? 4.5 : 2.5));
+    distanceController.setSetpoint((aligningL4 ? 4. : 2.5));
     distanceControllerRight.setSetpoint((aligningL4 ? 1.5 : 1.5));
     lateralController.setSetpoint(aligningL4 ? 1.5 : -1);
     SmartDashboard.putNumber("Output", thetaController.calculate(getRot()));
@@ -132,7 +132,7 @@ public class AutoAlignCommand extends Command {
     // Command completes when either:
     // - X position is within tolerance
     // - Target visibility is lost for the selected camera
-    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || DriverStation.isAutonomous() ? (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 3.) : (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 1.) || distanceController.atSetpoint() || (Math.abs(distanceControllerRight.getSetpoint() - getMeasurement()) < 1.) || distanceControllerRight.atSetpoint();
+    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 1.) || distanceController.atSetpoint() || (Math.abs(distanceControllerRight.getSetpoint() - getMeasurement()) < 1.) || distanceControllerRight.atSetpoint();
   }
   public double getMeasurement() {
     return aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft();
