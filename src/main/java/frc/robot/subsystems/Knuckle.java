@@ -47,6 +47,7 @@ public class Knuckle extends SubsystemBase {
     SmartDashboard.putBoolean("Coral or Not", hasCoral());
     SmartDashboard.putBoolean("Should Reset", shouldReset);
     SmartDashboard.putNumber("Coral Count", coralCount);
+    SmartDashboard.putNumber("Score", motor.get());
     // This method will be called once per scheduler run
   }
 

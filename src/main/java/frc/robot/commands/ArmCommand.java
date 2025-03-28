@@ -41,7 +41,6 @@ public class ArmCommand extends Command {
   @Override
   public void initialize() {
     controller.setTolerance(0.001);
-    SmartDashboard.putData("nn",controller);
   }
 
   // Called every time the scheduler runs while the command is scheduled.

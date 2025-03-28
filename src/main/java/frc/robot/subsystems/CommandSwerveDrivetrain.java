@@ -62,6 +62,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     NetworkTable m_limelightLeft = NetworkTableInstance.getDefault().getTable("limelight-fleft");
     private final SwerveRequest.ApplyRobotSpeeds m_ApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
     private boolean otfFollowing = false;
+    private boolean autoScore = false;
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
@@ -245,7 +246,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     @Override
     public void periodic() {
       // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
-      SmartDashboard.putNumber("Distance sensed", getSensorVal());
+      // SmartDashboard.putNumber("Distance sensed", getSensorVal());
         pose.update(getPigeon2().getRotation2d(), getModulePositions());
         // if (!DriverStation.isAutonomous()) {
         if (getTVLeft()) {
@@ -322,6 +323,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       }
       public void resetGyro(double angle) {
         getPigeon2().setYaw(angle);
+      }
+      public void setShouldAutoScore() {
+        autoScore = true;
+      }
+      public void turnOffAutoScore() {
+        autoScore = false;
+      }
+      public boolean getAutoScoreVal() {
+        return autoScore;
       }
       public double getTXLeft() {
         return m_limelightLeft.getEntry("tx").getDouble(0.);

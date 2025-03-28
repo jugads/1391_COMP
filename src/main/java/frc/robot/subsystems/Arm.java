@@ -30,7 +30,7 @@ public class Arm extends SubsystemBase {
     motor = new SparkMax(kMotorID, MotorType.kBrushless); 
     encoder = new DutyCycleEncoder(kEncoderPort);
     lastPosition = getEncoderPosition();
-    Shuffleboard.getTab("Teleoperated").addNumber("Arm Angle", () -> (getEncoderPosition()))
+    Shuffleboard.getTab("Teleoperated").addNumber("bins", () -> (getEncoderPosition()))
         .withWidget(BuiltInWidgets.kNumberBar)
         .withProperties(Map.of("min", -0.25, "max", 0.4, "step", 0.01));
   }
@@ -55,7 +55,7 @@ public class Arm extends SubsystemBase {
   }
 
   public double getEncoderPosition() {
-    return -(encoder.get() - 0.5214);
+    return -(encoder.get()-.6838);
   }
   // Checks if arm is at the transfer position (0 degrees)
   public boolean atTransferAngle() {

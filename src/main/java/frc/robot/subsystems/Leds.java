@@ -44,11 +44,12 @@ public class Leds extends SubsystemBase {
   @Override
   public void periodic() {
     if (DriverStation.isDisabled()) {
-    LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
+    /*LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
     LEDPattern pattern = base.scrollAtRelativeSpeed(Percent.per(Second).of(99));
 
     pattern.applyTo(buffer);
-    leds.setData(buffer);
+    leds.setData(buffer);*/
+    setAll(drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
     /*  double time = timer.get();
     int length = buffer.getLength();
     /*double time = timer.get();
@@ -160,7 +161,8 @@ public class Leds extends SubsystemBase {
 
   // Makes the LEDs flash by alternating between the specified color and black
   public void flash(Color color) {
-    if ((int)(timer.get() * 6) % 2 == 0) {
+    if ((int)(timer.get() * 8) % 2 == 0) {
+      
       setAll(color);
     } else {
       setAll(Color.kBlack);

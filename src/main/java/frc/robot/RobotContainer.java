@@ -132,20 +132,20 @@ public class RobotContainer {
         // Set default commands for other subsystems
         elevator.setDefaultCommand(new ElevatorCommand(elevator, algaeScorer));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
-        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.055 : 0.), algaeScorer));
+        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.08 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
     }
 
     private void configureDriverControls() {
-        joystick.a().whileTrue(
+        joystick.a().onTrue(
             new ParallelCommandGroup(
                 new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()),
                 new InstantCommand(() -> arm.setSetpoint(0.25))
             ).andThen(
-                new InstantCommand(() -> algaeScorer.stopMotor(), algaeScorer)
-            )
+                () -> algaeScorer.stopMotor()
+        )
         );
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         // joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
@@ -226,7 +226,7 @@ public class RobotContainer {
             .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
         )
         );
-        joystick.start().whileTrue(new InstantCommand(() -> arm.setSetpoint(0.15)));
+        joystick.start().whileTrue(new InstantCommand(() -> resetGyro()));
     }
 
     private void configureOperatorControls() {
@@ -256,35 +256,61 @@ public class RobotContainer {
         );
         operator.button(kAutoAlignLeft).whileTrue(
             Commands.sequence(
-                new AutoAlignCommand(drivetrain, driveRR, true, false, elevator),
-                new InstantCommand(() -> arm.setSetpoint(elevator.getElevatorPosition() > 0.8 ? 0.14 : 0.18)),
-                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01),
-                new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
-                )
+            new AutoAlignCommand(drivetrain, driveRR, true, false, elevator),
+            new ConditionalCommand(
+            Commands.sequence(
+                new InstantCommand(() -> arm.setSetpoint(0.14)),
+                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
+            ),
+            Commands.none(),
+            () -> (elevator.getElevatorPosition() > 0.8)
+            ),
+            new ConditionalCommand(
+            Commands.none(), 
+            Commands.none(),
+             () -> drivetrain.getAutoScoreVal()
+             )
+            )
         );
         operator.button(kAutoAlignRight).whileTrue(
             Commands.sequence(
             new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
-            new InstantCommand(() -> arm.setSetpoint(elevator.getElevatorPosition() > 0.8 ? 0.14 : 0.18)),
-            new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01),
-            new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+            new ConditionalCommand(
+            Commands.sequence(
+                new InstantCommand(() -> arm.setSetpoint(0.14)),
+                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
+            ),
+            Commands.none(),
+            () -> (elevator.getElevatorPosition() > 0.8)
+            ),
+            new ConditionalCommand(
+            Commands.none(), 
+            Commands.none(),
+             () -> drivetrain.getAutoScoreVal()
+             )
             )
         );
-        operator.button(k0degrees).onTrue(new InstantCommand(() -> arm.setSwingFalse()));
-        operator.button(k0degrees).onFalse(new InstantCommand(() -> arm.setSwingTrue()));
-        operator.button(k60degrees).whileTrue(new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm));
+        operator.axisLessThan(operator.getXChannel(), -0.99).onTrue(new InstantCommand(() -> arm.setSwingFalse()));
+        operator.axisLessThan(operator.getXChannel(), -0.99).onFalse(new InstantCommand(() -> arm.setSwingTrue()));
         // operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
-        operator.button(k180degrees).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.05)),
-                new InstantCommand(() -> arm.setSetpoint(0.09)),
-                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.85))
-            )
-        );
         // operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
         // operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
-        //Algae L2
+        operator.axisLessThan(operator.getYChannel(), -0.99).onTrue(
+            new InstantCommand(() -> arm.setSetpoint(0.15))
+        );
         operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
+            new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm)
+        );
+        operator.axisGreaterThan(operator.getYChannel(), 0.99).whileTrue(
+            new ParallelCommandGroup(
+            new RunCommand(() -> hopper.runBoth(-0.51, -1), hopper),
+            new RunCommand(() -> knuckle.runMotor(-1))
+            )
+        );
+        //Algae L2
+        operator.button(
+            kAL2
+        ).whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.37)),
                 new InstantCommand(() -> arm.setSetpoint(0.165)),
@@ -292,32 +318,37 @@ public class RobotContainer {
             )
         );
         //Algae l3
-        operator.axisLessThan(operator.getXChannel(), -0.99).whileTrue(
+        operator.button(
+            kAL3
+        ).whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.60)),
                 new InstantCommand(() -> arm.setSetpoint(0.19)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
         );
-        operator.axisGreaterThan(operator.getYChannel(), 0.99).whileTrue(
+        operator.button(kT).whileTrue(
             new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
         );
-        operator.axisLessThan(operator.getYChannel(), -0.99).whileTrue(
+        operator.button(kProcs).whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.07)),
+                new InstantCommand(() -> arm.setSetpoint(0.18))
+            )
+        );
+        operator.button(kNET).whileTrue(
             new SequentialCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
                 new InstantCommand(() -> arm.setSetpoint(0.3517))
             )
-        );
-        operator.axisLessThan(operator.getYChannel(), -0.99).and(joystick.leftBumper()).whileTrue(
-            new RunCommand(() -> algaeScorer.score())
         );
     } 
 
     private void configureManualControls() {      
         manual.rightTrigger().whileTrue(
             new SequentialCommandGroup(
-            new RunCommand(() -> climber.runClimber(1.*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations),
-            new RunCommand(() -> elevator.runElevatorUp(-0.1), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
+            new RunCommand(() -> climber.runClimber(1*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations).andThen(() -> climber.runClimber(0.)),
+            new RunCommand(() -> elevator.runElevatorUp(-0.3), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
             new InstantCommand(() -> arm.setSetpoint(0.3))
             )
@@ -330,13 +361,18 @@ public class RobotContainer {
         );
         manual.y().whileTrue(
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.07)),
-                new InstantCommand(() -> arm.setSetpoint(0.18))
+                new InstantCommand(() -> elevator.setSetpoint(0.03)),
+                new InstantCommand(() -> arm.setSetpoint(0.075)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(1.))
             )
-        );
+        ); 
         manual.a().whileTrue(
-            new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8), algaeScorer)
-        );        
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.1)),
+                new InstantCommand(() -> arm.setSetpoint(0.15)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(1.)) 
+            )
+        );      
         manual.x().whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(kElevL4)),

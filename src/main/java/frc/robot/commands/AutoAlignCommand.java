@@ -38,10 +38,10 @@ public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
   PIDController distanceController = new PIDController(0.035, 0., 0.0013);
-  PIDController distanceControllerRight = new PIDController(0.045, 0., 0.0013);
+  PIDController distanceControllerRight = new PIDController(0.0475, 0., 0.0013);
   // Y control: Lower gains for lateral movement
-  PIDController lateralController = new PIDController(0.0065, 0., 0.0003);
-  PIDController thetaController = new PIDController(0.3, 0., 0.0);
+  PIDController lateralController = new PIDController(0.0075, 0., 0.0003);
+  PIDController thetaController = new PIDController(0.1, 0., 0.0);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new ApplyRobotSpeeds();
@@ -63,7 +63,7 @@ public class AutoAlignCommand extends Command {
   public void initialize() {
     thetaController.enableContinuousInput(-180, 180);
     // thetaController.setSetpoint(0);
-    thetaController.setTolerance(2);
+    thetaController.setTolerance(1);
     // Allow 0.3m tolerance in both axes
     distanceController.setTolerance(0.5);
     lateralController.setTolerance(0.3);    
@@ -94,12 +94,9 @@ public class AutoAlignCommand extends Command {
     else {
       thetaController.setSetpoint(-60);
     }
-    distanceController.setSetpoint((aligningL4 ? 4. : 2.5));
-    distanceControllerRight.setSetpoint((aligningL4 ? 1.5 : 1.5));
-    lateralController.setSetpoint(aligningL4 ? 1.5 : -1);
-    SmartDashboard.putNumber("Output", thetaController.calculate(getRot()));
-    SmartDashboard.putNumber("s", thetaController.getSetpoint());
-    SmartDashboard.putNumber("Rot", getRot());
+    distanceController.setSetpoint((aligningL4 ? 3.75 : 3.));
+    distanceControllerRight.setSetpoint((aligningL4 ? 1.25 : 0.5));
+    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.5 : 0.25) : -1.25);
     // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
@@ -123,6 +120,25 @@ public class AutoAlignCommand extends Command {
     .withVelocityY(0)
     .withRotationalRate(0.)
     );
+    //For l3/l2: +0.3 deg and -3 deg is fine for distqance, +-4 degrees is fine
+    if (DriverStation.isTeleop()
+    &&
+    aligningLeft
+    ) {
+      if (
+        (distanceController.getSetpoint() + 0.3) < drivetrain.getTYRight() && (lateralController.getSetpoint() - 4) < Math.abs(drivetrain.getTXRight())
+      ) {
+      drivetrain.setShouldAutoScore();
+      }
+    }
+    else if (DriverStation.isTeleop() && !aligningLeft) {
+      if (
+        (distanceControllerRight.getSetpoint() + 0.3) < drivetrain.getTYLeft() && (lateralController.getSetpoint() - 4) < Math.abs(drivetrain.getTXLeft())
+      ) {
+      drivetrain.setShouldAutoScore();
+      }
+    }
+
     // Clear alignment state
     drivetrain.setAligning(false);
   }

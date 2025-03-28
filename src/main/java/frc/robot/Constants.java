@@ -11,18 +11,17 @@ public class Constants {
         public static final double kMaxAngularRate = kMaxSpeed * 39.37 / 20.75 * Math.PI;
     }
     public class OperatorConstants {
-        public static final int kL4 = 1;
-        public static final int kL3 = 2;
-        public static final int kL2 = 3;
-        public static final int kL1 = 4;
-        public static final int kAutoAlignLeft = 9;
-        public static final int kAutoAlignRight = 8;
-        public static final int k0degrees = 10;
-        public static final int k60degrees = 12;
-        public static final int k120degrees = 6;
-        public static final int k180degrees = 5;
-        public static final int k240degrees = 7;
-        public static final int k300degrees = 11;
+        public static final int kL4 = 8;
+        public static final int kL3 = 9;
+        public static final int kL2 = 11;
+        public static final int kL1 = 6;
+        public static final int kAutoAlignLeft = 10;
+        public static final int kAutoAlignRight = 2;
+        public static final int kAL3 = 7;
+        public static final int kAL2 = 12;
+        public static final int kNET = 4;
+        public static final int kProcs = 3;
+        public static final int kT = 5;
     }
     public class KnuckleConstants {
         public static final int kMotorID = 5;
@@ -57,10 +56,10 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
         public static final double kElevL1 = 0.57;
-        public static final double kElevL2 = 0.105; 
-        public static final double kElevL3 = 0.39;
+        public static final double kElevL2 = 0.21; 
+        public static final double kElevL3 = 0.5;
         public static final double kElevL4 = 0.93;
-        public static final double kElevTran = 0.375;
+        public static final double kElevTran = 0.37;
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -74,8 +73,8 @@ public class Constants {
         public static final double kDDynamic = 0.00035;
         public static final double kEncoderOffset = 0.86;
         public static final double kArmL1 = -0.04;
-        public static final double kArmL2 = 0.22;
-        public static final double kArmL3 = 0.22;
+        public static final double kArmL2 = 0.16;
+        public static final double kArmL3 = 0.16;
         public static final double kArmL4 = 0.19;
         public static final double kArmTran = -0.24;
     }

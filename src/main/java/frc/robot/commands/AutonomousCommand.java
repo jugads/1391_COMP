@@ -76,7 +76,6 @@ public class AutonomousCommand extends Command {
     return 
     new ParallelCommandGroup(
     Commands.sequence(
-        new WaitCommand(0.5),
         new ParallelCommandGroup(
             new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
             new InstantCommand(() -> arm.setSetpoint(0.22))),
@@ -158,7 +157,7 @@ public class AutonomousCommand extends Command {
                     AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
                     new TransferCommand(elevator, arm, knuckle, hopper)
                 ),
-                new WaitCommand(0.2),
+                new WaitCommand(0.1),
                 drivetrain.stopPathFollowState()),
             new ParallelRaceGroup(
                 AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
@@ -192,7 +191,7 @@ public class AutonomousCommand extends Command {
                     AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
                     new TransferCommand(elevator, arm, knuckle, hopper)
                 ),
-                new WaitCommand(0.2),
+                new WaitCommand(0.1),
                 drivetrain.stopPathFollowState()),
             new ParallelRaceGroup(
                 AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
@@ -253,7 +252,6 @@ public class AutonomousCommand extends Command {
     return 
     new ParallelCommandGroup(
     Commands.sequence(
-        new WaitCommand(0.5),
         new ParallelCommandGroup(
             new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
             new InstantCommand(() -> arm.setSetpoint(0.22))),
@@ -335,7 +333,7 @@ public class AutonomousCommand extends Command {
                     AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
                     new TransferCommand(elevator, arm, knuckle, hopper)
                 ),
-                new WaitCommand(0.2),
+                new WaitCommand(0.1),
                 drivetrain.stopPathFollowState()),
             new ParallelRaceGroup(
                 AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
@@ -369,7 +367,7 @@ public class AutonomousCommand extends Command {
                     AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
                     new TransferCommand(elevator, arm, knuckle, hopper)
                 ),
-                new WaitCommand(0.2),
+                new WaitCommand(0.1),
                 drivetrain.stopPathFollowState()),
             new ParallelRaceGroup(
                 AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
@@ -428,6 +426,7 @@ public class AutonomousCommand extends Command {
         isRed() ? kREDSOURCERIGHT_bargeWall : kBLUESOURCERIGHT_bargeWall
     };
     return Commands.sequence(
+        new WaitCommand(1.),
         new ParallelCommandGroup(
             new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
             new InstantCommand(() -> arm.setSetpoint(0.22)),

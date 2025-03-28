@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -44,7 +45,10 @@ public class TransferCommand extends SequentialCommandGroup {
       
       // Move arm to transfer position and wait until it's close enough
       new InstantCommand(() -> arm.setSetpoint(kArmTran)),
+      new ParallelRaceGroup(
       new WaitUntilCommand(() -> arm.getEncoderPosition() < -0.21),
+      new RunCommand(() -> hopper.runBeltMotor(0.3))
+      ),
       
       // Brief pause to ensure stability
       new WaitCommand(0.1),

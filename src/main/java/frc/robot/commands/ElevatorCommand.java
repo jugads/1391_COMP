@@ -15,7 +15,7 @@ import frc.robot.subsystems.Elevator;
 public class ElevatorCommand extends Command {
   // Feedforward controller to compensate for gravity and system dynamics
   // Parameters: kS (static friction), kG (gravity), kV (velocity)
-  ElevatorFeedforward ff = new ElevatorFeedforward(0, 0.04, 1.55); //1.65
+  ElevatorFeedforward ff = new ElevatorFeedforward(0, 0.03, 1.55); //1.65
   
   // PID controller for position control
   // Parameters: kP (proportional), kI (integral), kD (derivative)
@@ -48,7 +48,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.4 : 0.7
+      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.5 : 0.7
     ));
     // elevator.runElevatorUp(0);
   }
