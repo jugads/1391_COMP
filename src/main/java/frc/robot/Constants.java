@@ -56,10 +56,10 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.;
         public static final double kElevL1 = 0.57;
-        public static final double kElevL2 = 0.21; 
-        public static final double kElevL3 = 0.5;
-        public static final double kElevL4 = 0.93;
-        public static final double kElevTran = 0.37;
+        public static final double kElevL2 = 0.16; 
+        public static final double kElevL3 = 0.51;
+        public static final double kElevL4 = 0.94;
+        public static final double kElevTran = 0.368;
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -72,19 +72,19 @@ public class Constants {
         public static final double kIDynamic = 0.0;
         public static final double kDDynamic = 0.00035;
         public static final double kEncoderOffset = 0.86;
-        public static final double kArmL1 = -0.04;
-        public static final double kArmL2 = 0.16;
-        public static final double kArmL3 = 0.16;
-        public static final double kArmL4 = 0.19;
+        public static final double kArmL1 = -0.055;
+        public static final double kArmL2 = 0.175;
+        public static final double kArmL3 = 0.15;
+        public static final double kArmL4 = 0.1475;
         public static final double kArmTran = -0.24;
     }
     public class ReefPoses {
         public static final Pose2d kRED0_1 = new Pose2d(11.19, 4.25, Rotation2d.fromDegrees(0));
-        public static final Pose2d kRED2_3 = new Pose2d(11.78289794921875 , 6.251760005950928 , Rotation2d.fromDegrees(-60));
-        public static final Pose2d kRED4_5 = new Pose2d(14.29, 6.2, Rotation2d.fromDegrees(-120));
-        public static final Pose2d kRED6_7 = new Pose2d(15, 4, Rotation2d.fromDegrees(180));
+        public static final Pose2d kRED2_3 = new Pose2d(12.1 , 6.1, Rotation2d.fromDegrees(-60));
+        public static final Pose2d kRED4_5 = new Pose2d(14.35, 6.35, Rotation2d.fromDegrees(-120));
+        public static final Pose2d kRED6_7 = new Pose2d(15.47, 4, Rotation2d.fromDegrees(180));
         public static final Pose2d kRED8_9 = new Pose2d(14.49, 1.93, Rotation2d.fromDegrees(120));
-        public static final Pose2d kRED10_11 = new Pose2d(12.001603126525879, 2.264570951461792, Rotation2d.fromDegrees(60));
+        public static final Pose2d kRED10_11 = new Pose2d(12.09, 1.28, Rotation2d.fromDegrees(60));
 
         public static final Pose2d kREDSOURCERIGHT_center = new Pose2d(16.42, 7.06, Rotation2d.fromDegrees(-128));
         public static final Pose2d kREDSOURCERIGHT_bargeWall = new Pose2d(15.92, 7.42, Rotation2d.fromDegrees(-128));
@@ -96,11 +96,11 @@ public class Constants {
         public static final Pose2d kREDSOURCELEFT_operatorWall = new Pose2d(16.61, 1.3, Rotation2d.fromDegrees(128));
 
         public static final Pose2d kBLUE0_1 = new Pose2d(6.35, 4.06, Rotation2d.fromDegrees(180)); 
-        public static final Pose2d kBLUE2_3 = new Pose2d(5.69, 1.93, Rotation2d.fromDegrees(120));
+        public static final Pose2d kBLUE2_3 = new Pose2d(5.68, 1.72, Rotation2d.fromDegrees(120));
         public static final Pose2d kBLUE4_5 = new Pose2d(3.1, 1.75, Rotation2d.fromDegrees(60));
-        public static final Pose2d kBLUE6_7 = new Pose2d(2.5, 4.02, Rotation2d.fromDegrees(0));
+        public static final Pose2d kBLUE6_7 = new Pose2d(2.26, 4.02, Rotation2d.fromDegrees(0));
         public static final Pose2d kBLUE8_9 = new Pose2d(3.18, 6.13, Rotation2d.fromDegrees(-60));
-        public static final Pose2d kBLUE10_11 = new Pose2d(5.6, 5.8, Rotation2d.fromDegrees(-120));
+        public static final Pose2d kBLUE10_11 = new Pose2d(5.62, 6.21, Rotation2d.fromDegrees(-120));
 
         public static final Pose2d kBLUESOURCERIGHT_center = new Pose2d(1.12, 0.93, Rotation2d.fromDegrees(52));
         public static final Pose2d kBLUESOURCERIGHT_bargeWall = new Pose2d(1.57, 0.54, Rotation2d.fromDegrees(52));

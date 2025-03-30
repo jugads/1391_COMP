@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -47,7 +48,9 @@ public class TransferCommand extends SequentialCommandGroup {
       new InstantCommand(() -> arm.setSetpoint(kArmTran)),
       new ParallelRaceGroup(
       new WaitUntilCommand(() -> arm.getEncoderPosition() < -0.21),
-      new RunCommand(() -> hopper.runBeltMotor(0.3))
+      new ConditionalCommand(
+        new RunCommand(() -> hopper.runBeltMotor(0.3)), Commands.none(), () -> DriverStation.isTeleop()
+      )
       ),
       
       // Brief pause to ensure stability
@@ -58,10 +61,14 @@ public class TransferCommand extends SequentialCommandGroup {
           new RunCommand(() -> hopper.runBoth(0.4, 1.), hopper),
           new RunCommand(() -> knuckle.setKnuckleMotorHigh(), knuckle)
       ).until(() -> knuckle.hasCoral()),
+      new ConditionalCommand(
       new WaitUntilCommand(() -> arm.getShouldSwing()),
-      new InstantCommand(() -> elevator.setSetpoint(kElevTran + 0.09)).until(() -> elevator.getElevatorPosition() > (kElevTran+0.01)),
+      Commands.none(),
+      () -> DriverStation.isTeleop()
+      ),
+      new InstantCommand(() -> elevator.setSetpoint(kElevTran + 0.09)).until(() -> elevator.getElevatorPosition() > (kElevTran+0.03)),
       // Final positioning after coral is acquired
       new InstantCommand(() -> arm.setSetpoint(0.25)),
-      new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.22));
+      new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.15));
   }
 }

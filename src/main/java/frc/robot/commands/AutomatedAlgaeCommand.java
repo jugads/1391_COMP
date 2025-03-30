@@ -68,12 +68,12 @@ public class AutomatedAlgaeCommand extends Command {
     if (tagID != 0) {
       for (int i = 0; i<=5; i++) {
         if (tagID == algaeL2[i]) {
-          elevator.setSetpoint(0.37);
+          elevator.setSetpoint(0.31);
           arm.setSetpoint(0.19);
           break;
         }
         else if (tagID == algaeL3[i]) {
-          elevator.setSetpoint(0.60);
+          elevator.setSetpoint(0.58);
           arm.setSetpoint(0.19);
           break;
         }

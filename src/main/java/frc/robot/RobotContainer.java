@@ -259,16 +259,18 @@ public class RobotContainer {
             new AutoAlignCommand(drivetrain, driveRR, true, false, elevator),
             new ConditionalCommand(
             Commands.sequence(
-                new InstantCommand(() -> arm.setSetpoint(0.14)),
-                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
+                // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
+                Commands.none()
             ),
             Commands.none(),
             () -> (elevator.getElevatorPosition() > 0.8)
             ),
             new ConditionalCommand(
-            Commands.none(), 
+            // new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),  
             Commands.none(),
-             () -> drivetrain.getAutoScoreVal()
+            Commands.none(),
+             () -> drivetrain.getAutoScoreVal() && elevator.getElevatorPosition() <0.8
              )
             )
         );
@@ -277,16 +279,18 @@ public class RobotContainer {
             new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
             new ConditionalCommand(
             Commands.sequence(
-                new InstantCommand(() -> arm.setSetpoint(0.14)),
-                new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
+                // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
+                Commands.none()
             ),
             Commands.none(),
             () -> (elevator.getElevatorPosition() > 0.8)
             ),
             new ConditionalCommand(
-            Commands.none(), 
+            // new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()), 
             Commands.none(),
-             () -> drivetrain.getAutoScoreVal()
+            Commands.none(),
+             () -> drivetrain.getAutoScoreVal() && elevator.getElevatorPosition() < 0.8
              )
             )
         );
@@ -312,7 +316,7 @@ public class RobotContainer {
             kAL2
         ).whileTrue(
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.37)),
+                new InstantCommand(() -> elevator.setSetpoint(0.31)),
                 new InstantCommand(() -> arm.setSetpoint(0.165)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
@@ -322,7 +326,7 @@ public class RobotContainer {
             kAL3
         ).whileTrue(
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.60)),
+                new InstantCommand(() -> elevator.setSetpoint(0.57)),
                 new InstantCommand(() -> arm.setSetpoint(0.19)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
@@ -350,7 +354,7 @@ public class RobotContainer {
             new RunCommand(() -> climber.runClimber(1*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations).andThen(() -> climber.runClimber(0.)),
             new RunCommand(() -> elevator.runElevatorUp(-0.3), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
-            new InstantCommand(() -> arm.setSetpoint(0.3))
+            new InstantCommand(() -> arm.setSetpoint(0.25))
             )
         );
         manual.leftTrigger().whileTrue(

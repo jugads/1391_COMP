@@ -37,11 +37,11 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.035, 0., 0.0013);
-  PIDController distanceControllerRight = new PIDController(0.0475, 0., 0.0013);
+  PIDController distanceController = new PIDController(0.036, 0., 0.0013);
+  PIDController distanceControllerRight = new PIDController(0.048, 0., 0.0013);
   // Y control: Lower gains for lateral movement
-  PIDController lateralController = new PIDController(0.0075, 0., 0.0003);
-  PIDController thetaController = new PIDController(0.1, 0., 0.0);
+  PIDController lateralController = new PIDController(0.009, 0., 0.0003);
+  PIDController thetaController = new PIDController(0.25, 0., 0.0);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new ApplyRobotSpeeds();
@@ -49,6 +49,7 @@ public class AutoAlignCommand extends Command {
   boolean aligningLeft;
   boolean aligningL4;
   Elevator elevator;
+  boolean latAligned;
   public AutoAlignCommand(CommandSwerveDrivetrain drivetrain, SwerveRequest.RobotCentric drive, boolean aligningLeft, boolean aligningL4, Elevator elevator) {
     this.drivetrain = drivetrain;
     this.drive = drive;
@@ -66,7 +67,8 @@ public class AutoAlignCommand extends Command {
     thetaController.setTolerance(1);
     // Allow 0.3m tolerance in both axes
     distanceController.setTolerance(0.5);
-    lateralController.setTolerance(0.3);    
+    lateralController.setTolerance(0.3);
+    drivetrain.turnOffAutoScore();
   }
 
   @Override
@@ -94,20 +96,42 @@ public class AutoAlignCommand extends Command {
     else {
       thetaController.setSetpoint(-60);
     }
-    distanceController.setSetpoint((aligningL4 ? 3.75 : 3.));
-    distanceControllerRight.setSetpoint((aligningL4 ? 1.25 : 0.5));
-    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.5 : 0.25) : -1.25);
+    distanceController.setSetpoint((aligningL4 ? 4. : 2.5));
+    distanceControllerRight.setSetpoint((aligningL4 ? 0.25 : -0.75));
+    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.5 : 0.) : (aligningLeft ? -1.25 : -1.75));
     // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
-    drivetrain.setControl(drive
-    .withVelocityX(-kMaxSpeed* (aligningLeft ?
-    distanceController.calculate(drivetrain.getTYRight()) :
-    distanceControllerRight.calculate(drivetrain.getTYLeft()))
-    )
+    if (DriverStation.isTeleop()) {
+      if (Math.abs(lateralController.getError()) < 4 && !latAligned) {
+        drivetrain.setControl(drive
+    .withVelocityX(0)
     .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
     .withRotationalRate(thetaController.calculate(getRot()))
     );
+      }
+      else {
+        latAligned = true;
+        drivetrain.setControl(drive
+        .withVelocityX(-kMaxSpeed* (aligningLeft ?
+        distanceController.calculate(drivetrain.getTYRight()) :
+        distanceControllerRight.calculate(drivetrain.getTYLeft()))
+        )
+        .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
+        .withRotationalRate(thetaController.calculate(getRot()))
+        );
+    }
+  }
+  else {
+    drivetrain.setControl(drive
+        .withVelocityX(-kMaxSpeed* (aligningLeft ?
+        distanceController.calculate(drivetrain.getTYRight()) :
+        distanceControllerRight.calculate(drivetrain.getTYLeft()))
+        )
+        .withVelocityY(-kMaxSpeed * lateralController.calculate(aligningLeft ? drivetrain.getTXRight() : drivetrain.getTXLeft()))
+        .withRotationalRate(thetaController.calculate(getRot()))
+        );
+  }
     // Set alignment state for status tracking
     drivetrain.setAligning(true);
   }
@@ -124,6 +148,8 @@ public class AutoAlignCommand extends Command {
     if (DriverStation.isTeleop()
     &&
     aligningLeft
+    &&
+    !aligningL4
     ) {
       if (
         (distanceController.getSetpoint() + 0.3) < drivetrain.getTYRight() && (lateralController.getSetpoint() - 4) < Math.abs(drivetrain.getTXRight())
@@ -131,9 +157,23 @@ public class AutoAlignCommand extends Command {
       drivetrain.setShouldAutoScore();
       }
     }
-    else if (DriverStation.isTeleop() && !aligningLeft) {
+    else if (DriverStation.isTeleop() && !aligningLeft && !aligningL4) {
       if (
         (distanceControllerRight.getSetpoint() + 0.3) < drivetrain.getTYLeft() && (lateralController.getSetpoint() - 4) < Math.abs(drivetrain.getTXLeft())
+      ) {
+      drivetrain.setShouldAutoScore();
+      }
+    }
+    else if (DriverStation.isTeleop() && !aligningLeft && aligningL4) {
+      if (
+        (distanceControllerRight.getSetpoint() + 0.4) < drivetrain.getTYLeft() && (lateralController.getSetpoint() - 3) < Math.abs(drivetrain.getTXLeft())
+      ) {
+      drivetrain.setShouldAutoScore();
+      }
+    }
+    else if (DriverStation.isTeleop() && !aligningLeft && aligningL4) {
+      if (
+        (distanceControllerRight.getSetpoint() + 0.4) < drivetrain.getTYLeft() && (lateralController.getSetpoint() - 3) < Math.abs(drivetrain.getTXLeft())
       ) {
       drivetrain.setShouldAutoScore();
       }
