@@ -85,6 +85,8 @@ public class Constants {
         public static final Pose2d kRED6_7 = new Pose2d(15.47, 4, Rotation2d.fromDegrees(180));
         public static final Pose2d kRED8_9 = new Pose2d(14.49, 1.93, Rotation2d.fromDegrees(120));
         public static final Pose2d kRED10_11 = new Pose2d(12.09, 1.28, Rotation2d.fromDegrees(60));
+        public static final Pose2d kRED10_11_ALGAE = new Pose2d(12.257259368896484, 2.6072371006011963, Rotation2d.fromDegrees(60));
+        public static final Pose2d kREDBarge = new Pose2d(10.36788272857666, 3.2843942642211914, Rotation2d.fromDegrees(-180));
 
         public static final Pose2d kREDSOURCERIGHT_center = new Pose2d(16.42, 7.06, Rotation2d.fromDegrees(-128));
         public static final Pose2d kREDSOURCERIGHT_bargeWall = new Pose2d(15.92, 7.42, Rotation2d.fromDegrees(-128));
@@ -101,7 +103,9 @@ public class Constants {
         public static final Pose2d kBLUE6_7 = new Pose2d(2.26, 4.02, Rotation2d.fromDegrees(0));
         public static final Pose2d kBLUE8_9 = new Pose2d(3.18, 6.13, Rotation2d.fromDegrees(-60));
         public static final Pose2d kBLUE10_11 = new Pose2d(5.62, 6.21, Rotation2d.fromDegrees(-120));
-
+        public static final Pose2d kBLUE10_11_ALGAE = new Pose2d(5.332043170928955, 5.468785762786865, Rotation2d.fromDegrees(-120));
+        public static final Pose2d kBLUEBarge = new Pose2d(7.259877681732178, 5.142665386199951, Rotation2d.fromDegrees(0));
+        
         public static final Pose2d kBLUESOURCERIGHT_center = new Pose2d(1.12, 0.93, Rotation2d.fromDegrees(52));
         public static final Pose2d kBLUESOURCERIGHT_bargeWall = new Pose2d(1.57, 0.54, Rotation2d.fromDegrees(52));
         public static final Pose2d kBLUESOURCERIGHT_operatorWall = new Pose2d(0.87, 1.32, Rotation2d.fromDegrees(52));
@@ -111,6 +115,7 @@ public class Constants {
         public static final Pose2d kBLUESOURCELEFT_bargeWall = new Pose2d(1.36, 7.18, Rotation2d.fromDegrees(-52));
 
         public static final PathConstraints K_CONSTRAINTS_Fastest = new PathConstraints(5.41, 5., 3*Math.PI, 3*Math.PI);
+        public static final PathConstraints K_CONSTRAINTS_Barging = new PathConstraints(2, 2., 3*Math.PI, 3*Math.PI);
     }
 
     public class AlignmentPoses {

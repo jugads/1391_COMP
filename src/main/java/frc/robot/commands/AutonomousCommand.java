@@ -18,6 +18,7 @@ import frc.robot.subsystems.Elevator;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.path.PathConstraints;
 
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -451,18 +452,87 @@ public class AutonomousCommand extends Command {
         AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest));
   }
 
-  public Command center0() {
+  public Command center0AlgaeRemoval() {
     return Commands.sequence(
-        new WaitCommand(1),
+        //Gyro and move arm
+        new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+        new InstantCommand(() -> arm.setSetpoint(0.22)),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.25),
+
+        //l4 setpoints
+        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+        new InstantCommand(() -> arm.setSetpoint(kArmL4)),
+        new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.85),
+
+        //Both AutoAligns
+        new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+        knuckle.scoreCmd().until(() -> !knuckle.hasCoral()),
+        new AutomatedAlgaeCommand(algae, drivetrain, driveRR, elevator, arm).onlyWhile(
+            () -> !drivetrain.getTVLeft() && !algae.hasAlgae()
+        ),
+        //Reset Odometry Based on LL Left
+        new InstantCommand(() -> drivetrain.resetPose(
+            new Pose2d(
+                drivetrain.getLeftLLPose().getX(),
+                drivetrain.getLeftLLPose().getY(),
+                drivetrain.getPigeon2().getRotation2d())
+            )
+        ),
+        //Driving and elevator/arm
         new ParallelCommandGroup(
-            new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
-            new InstantCommand(() -> arm.setSetpoint(0.22)),
-            new InstantCommand(() -> elevator.setSetpoint(0.))),
+        AutoBuilder.pathfindToPose(isRed() ? kREDBarge : kBLUEBarge, K_CONSTRAINTS_Barging),
+        new SequentialCommandGroup(
+            new InstantCommand(() -> elevator.setSetpoint(0.9985)),
+            new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.95),
+            new InstantCommand(() -> arm.setSetpoint(0.35)),
+            new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.34)
+        )
+        ),
+
+        //Scoring Algae
         new ParallelCommandGroup(
-            new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-            new InstantCommand(() -> arm.setSetpoint(kArmL4)),
-            new AutoAlignCommand(drivetrain, driveRR, false, true, elevator)),
-        new RunCommand(() -> knuckle.score()).until(() -> !knuckle.hasCoral()));
+            new RunCommand(() -> algae.score()).until(() -> !algae.hasAlgae()),
+            new InstantCommand(() -> arm.setSetpoint(0.25))
+        ),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.3),
+
+        //L3 Setpoint
+        new ParallelCommandGroup(
+          new InstantCommand(() -> elevator.setSetpoint(0.58)),
+          new InstantCommand(() -> arm.setSetpoint(0.19))
+        ),
+        //Driving Back To Reef & collecting algae
+        AutoBuilder.pathfindToPose(isRed() ? kRED10_11_ALGAE : kBLUE10_11_ALGAE, K_CONSTRAINTS_Fastest),
+        new ParallelCommandGroup(
+            drivetrain.applyRequest(() -> driveRR.withVelocityX(1.)),
+            new RunCommand(() -> algae.runAlgaeScorer(1.))
+        ).until(() -> algae.hasAlgae()),
+
+        drivetrain.applyRequest(() -> driveRR.withVelocityX(-0.75)).until(() -> drivetrain.getTVLeft()),
+        new InstantCommand(() -> drivetrain.resetPose(
+            new Pose2d(
+                drivetrain.getLeftLLPose().getX(),
+                drivetrain.getLeftLLPose().getY(),
+                drivetrain.getPigeon2().getRotation2d())
+            )
+        ),
+        new ParallelCommandGroup(
+        AutoBuilder.pathfindToPose(isRed() ? kREDBarge : kBLUEBarge, K_CONSTRAINTS_Barging),
+        new SequentialCommandGroup(
+            new InstantCommand(() -> elevator.setSetpoint(0.9985)),
+            new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.95),
+            new InstantCommand(() -> arm.setSetpoint(0.35)),
+            new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.34)
+        )
+        ),
+
+        //Scoring Algae
+        new ParallelCommandGroup(
+            new RunCommand(() -> algae.score()).until(() -> !algae.hasAlgae()),
+            new InstantCommand(() -> arm.setSetpoint(0.25))
+        ),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.3)
+    );
   }
 
   public Command driveStraight() {

@@ -95,7 +95,7 @@ public class RobotContainer {
     public RobotContainer() {
         autoChooser.addOption("Right Side branches 3-4-5-6", autos.branches3_4_5_6());
         autoChooser.addOption("Left Side branches 10-9-8-7", autos.branches10_9_8_7());
-        autoChooser.addOption("Center branch 0", autos.center0());
+        autoChooser.addOption("Center Algae Auto", autos.center0AlgaeRemoval());
         autoChooser.addOption("Drive Straight", autos.driveStraight());
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
