@@ -113,7 +113,7 @@ public class AutonomousCommand extends Command {
                         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
                         new InstantCommand(() -> arm.setSetpoint(kArmL4))
                     ),
-                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.85),
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
                     new WaitCommand(0.1),
                     new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
@@ -145,7 +145,7 @@ public class AutonomousCommand extends Command {
                         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
                         new InstantCommand(() -> arm.setSetpoint(kArmL4))
                     ),
-                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.85),
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
                     new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),

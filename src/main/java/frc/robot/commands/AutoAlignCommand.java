@@ -38,7 +38,7 @@ public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
   PIDController distanceController = new PIDController(0.036, 0., 0.0013);
-  PIDController distanceControllerRight = new PIDController(0.04, 0., 0.0013);
+  PIDController distanceControllerRight = new PIDController(0.042, 0., 0.0013);
   // Y control: Lower gains for lateral movement
   PIDController lateralController = new PIDController(0.009, 0., 0.0003);
   PIDController thetaController = new PIDController(0.25, 0., 0.0);
