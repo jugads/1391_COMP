@@ -37,8 +37,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
-import com.revrobotics.*;
-import com.revrobotics.Rev2mDistanceSensor.Unit;
 
 import static frc.robot.Constants.AlignmentPoses.*;
 /**
