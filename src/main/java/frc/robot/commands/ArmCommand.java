@@ -28,7 +28,7 @@ public class ArmCommand extends Command {
   Arm arm;
   Elevator elevator;
   // Higher P gain (2.0) for quick response, small D gain (0.1) for oscillation damping
-  PIDController controller = new PIDController(2., 0, 0.);
+  PIDController controller = new PIDController(2.65, 0, 0.);
   
   public ArmCommand(Arm arm, Elevator elevator) {
     this.arm = arm;
@@ -41,6 +41,7 @@ public class ArmCommand extends Command {
   @Override
   public void initialize() {
     controller.setTolerance(0.001);
+    SmartDashboard.putData("Arm PID Controller", controller);
   }
 
   // Called every time the scheduler runs while the command is scheduled.

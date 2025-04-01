@@ -80,6 +80,7 @@ public class Knuckle extends SubsystemBase {
   }
   public void setCoralStateFalse() {
     coralCount = 0;
+    scoreCount = 0;
   }
   // Retrieves the current draw from the motor for coral detection
   public double getCurrent() {

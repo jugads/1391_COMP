@@ -20,7 +20,7 @@ public class ElevatorCommand extends Command {
   
   // PID controller for position control
   // Parameters: kP (proportional), kI (integral), kD (derivative)
-  PIDController pid = new PIDController(1.68, 0, 0.05);
+  PIDController pid = new PIDController(1.68, 0, 0.06);
   
   /** Creates a new ElevatorCommand. */
   Elevator elevator;
@@ -37,7 +37,9 @@ public class ElevatorCommand extends Command {
 
   // Initialization method - called once when command starts
   @Override
-  public void initialize() {}
+  public void initialize() {
+    SmartDashboard.putData("Elevator PID", pid);
+  }
 
   // Main execution loop - called repeatedly while command is running
   @Override
@@ -50,7 +52,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.5 : 0.7
+      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.5 : 0.9
     ));
     // elevator.runElevatorUp(0);
   }

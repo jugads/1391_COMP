@@ -423,6 +423,9 @@ public class RobotContainer {
     public void setCoral() {
         knuckle.setHasCoral();
     }
+    public void setKnuckleNo() {
+        knuckle.setCoralStateFalse();
+    }
     public void setGyro() {
         if (DriverStation.getAlliance().get() == Alliance.Blue) {drivetrain.getPigeon2().setYaw(0);}
         else if (DriverStation.getAlliance().get() == Alliance.Red) {drivetrain.getPigeon2().setYaw(180);}

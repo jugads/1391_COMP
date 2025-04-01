@@ -68,6 +68,7 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
     m_robotContainer.setStartingSetpoints();
+    m_robotContainer.setKnuckleNo();
   }
 
   @Override

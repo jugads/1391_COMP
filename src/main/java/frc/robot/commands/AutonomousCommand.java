@@ -112,8 +112,9 @@ public class AutonomousCommand extends Command {
                     new ParallelCommandGroup(
                         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
                         new InstantCommand(() -> arm.setSetpoint(kArmL4))
-                    ).until(() -> elevator.getElevatorPosition() > 0.85),
-                    new WaitCommand(0.4),
+                    ),
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.85),
+                    new WaitCommand(0.1),
                     new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
@@ -142,8 +143,9 @@ public class AutonomousCommand extends Command {
                 new SequentialCommandGroup(
                     new ParallelCommandGroup(
                         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                        new InstantCommand(() -> arm.setSetpoint(0.155))
-                    ).until(() -> elevator.getElevatorPosition() > 0.85),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ),
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.85),
                     new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
@@ -177,10 +179,10 @@ public class AutonomousCommand extends Command {
                 new SequentialCommandGroup(
                     new ParallelCommandGroup(
                         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                        new InstantCommand(() -> arm.setSetpoint(0.155))
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
                     ).until(() -> elevator.getElevatorPosition() > 0.85),
                     new WaitCommand(0.75),
-                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
