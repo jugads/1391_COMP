@@ -9,7 +9,6 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.wpilibj.AddressableLED;
@@ -19,7 +18,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
@@ -27,7 +25,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.ArmCommand;
@@ -50,8 +47,6 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.ArmConstants.*;
 import static frc.robot.Constants.ClimberConstants.k90DegreesRotations;
 import static frc.robot.Constants.ReefPoses.*;
-import static frc.robot.Constants.AlignmentPoses.*;
-
 import static frc.robot.Constants.OperatorConstants.*;
 public class RobotContainer {
     // Drive configuration
@@ -141,7 +136,7 @@ public class RobotContainer {
     private void configureDriverControls() {
         joystick.a().onTrue(
             new ParallelCommandGroup(
-                new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()),
+                new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()),
                 new InstantCommand(() -> arm.setSetpoint(0.25))
             ).andThen(
                 () -> algaeScorer.stopMotor()

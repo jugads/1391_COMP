@@ -37,7 +37,7 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.036, 0., 0.0013);
+  PIDController distanceController = new PIDController(0.0365, 0., 0.0013);
   PIDController distanceControllerRight = new PIDController(0.042, 0., 0.0013);
   // Y control: Lower gains for lateral movement
   PIDController lateralController = new PIDController(0.009, 0., 0.0003);
@@ -68,6 +68,10 @@ public class AutoAlignCommand extends Command {
     // Allow 0.3m tolerance in both axes
     distanceController.setTolerance(0.5);
     lateralController.setTolerance(0.3);
+    SmartDashboard.putData("LateralController", lateralController);
+    SmartDashboard.putData("Distance Control Right", distanceControllerRight);
+    SmartDashboard.putData("Distance Control Left", distanceController);
+    SmartDashboard.putData("Rot Controller", thetaController);
     drivetrain.turnOffAutoScore();
   }
 
