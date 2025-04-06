@@ -72,7 +72,7 @@ public class AutonomousCommand extends Command {
         isRed() ? kRED2_3 : kBLUE2_3,
         isRed() ? kREDSOURCERIGHT_bargeWall : kBLUESOURCERIGHT_bargeWall,
         isRed() ? kRED4_5 : kBLUE4_5,
-        isRed() ? kRED6_7 : kBLUE6_7
+        isRed() ? kRED2_3 : kBLUE2_3
     };
     return new ParallelCommandGroup(
     Commands.sequence(
@@ -87,7 +87,7 @@ public class AutonomousCommand extends Command {
             new InstantCommand(() -> arm.setSetpoint(kArmL4))
         ),
 
-        new WaitCommand(0.25),
+        new WaitCommand(0.5),
         new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
 
@@ -119,7 +119,7 @@ public class AutonomousCommand extends Command {
                     new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
 
                     new WaitCommand(0.2),
-                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
@@ -145,7 +145,7 @@ public class AutonomousCommand extends Command {
         drivetrain.setFollowingPath(),
         new ParallelCommandGroup(
             new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
-            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
+            AutoBuilder.pathfindToPose(isRed() ? kRED6_7 : kBLUE6_7, K_CONSTRAINTS_Fastest)
         ),
         drivetrain.stopPathFollowState(),
 
@@ -230,7 +230,7 @@ public class AutonomousCommand extends Command {
         isRed() ? kRED10_11 : kBLUE10_11,
         isRed() ? kREDSOURCELEFT_bargeWall : kBLUESOURCELEFT_bargeWall,
         isRed() ? kRED8_9 : kBLUE8_9,
-        isRed() ? kRED6_7 : kBLUE6_7
+        isRed() ? kRED10_11 : kBLUE10_11
     };
     return new ParallelCommandGroup(
     Commands.sequence(
@@ -246,7 +246,7 @@ public class AutonomousCommand extends Command {
         ),
 
         new WaitCommand(0.25),
-        new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
 
 
@@ -303,7 +303,7 @@ public class AutonomousCommand extends Command {
         drivetrain.setFollowingPath(),
         new ParallelCommandGroup(
             new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
-            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
+            AutoBuilder.pathfindToPose(isRed() ? kRED6_7 : kBLUE6_7, K_CONSTRAINTS_Fastest)
         ),
         drivetrain.stopPathFollowState(),
 
@@ -316,7 +316,7 @@ public class AutonomousCommand extends Command {
                     ),
                     new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
                     new WaitCommand(0.2),
-                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())

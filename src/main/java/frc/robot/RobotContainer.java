@@ -265,7 +265,7 @@ public class RobotContainer {
             // new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),  
             Commands.none(),
             Commands.none(),
-             () -> drivetrain.getAutoScoreVal() && elevator.getElevatorPosition() <0.8
+             () -> DriverStation.isTeleop()
              )
             )
         );
@@ -285,7 +285,7 @@ public class RobotContainer {
             // new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()), 
             Commands.none(),
             Commands.none(),
-             () -> drivetrain.getAutoScoreVal() && elevator.getElevatorPosition() < 0.8
+             () -> DriverStation.isTeleop()
              )
             )
         );
@@ -295,7 +295,11 @@ public class RobotContainer {
         // operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
         // operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
         operator.axisLessThan(operator.getYChannel(), -0.99).onTrue(
-            new InstantCommand(() -> arm.setSetpoint(0.15))
+            new SequentialCommandGroup(
+            new RunCommand(() -> elevator.runElevatorUp(-0.2), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
+            new InstantCommand(() -> arm.setClimbing()),
+            new InstantCommand(() -> arm.setSetpoint(0.3))
+            )
         );
         operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
             new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm)
@@ -331,7 +335,7 @@ public class RobotContainer {
         );
         operator.button(kProcs).whileTrue(
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.07)),
+                new InstantCommand(() -> elevator.setSetpoint(0.04)),
                 new InstantCommand(() -> arm.setSetpoint(0.18))
             )
         );
