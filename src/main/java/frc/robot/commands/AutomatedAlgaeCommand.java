@@ -87,7 +87,7 @@ public class AutomatedAlgaeCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (timer.get() < 0.25) {
+    if (timer.get() < 0.3) {
       drivetrain.setControl(driveRR.withVelocityY(isAtLeft ? -1.5 : 1.5));
     }
     else if (!algae.hasAlgae()){

@@ -88,8 +88,10 @@ public class RobotContainer {
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public RobotContainer() {
-        autoChooser.addOption("Right Side branches 3-4-5-6", autos.branches3_4_5_6());
-        autoChooser.addOption("Left Side branches 10-9-8-7", autos.branches10_9_8_7());
+        autoChooser.addOption("ONLY LEFT BRANCHES Right Side branches 3-4-5-6", autos.branches3_4_5_6_ALLLEFT());
+        autoChooser.addOption("NORMAL Right Side branches 3-4-5-6", autos.branches3_4_5_6());
+        autoChooser.addOption("ONLY LEFT BRANCHES LEFT Side branches 10-9-8-7", autos.branches10_9_8_7ALLLEFT());
+        autoChooser.addOption("NORMAL LEFT Side branches 10-9-8-7", autos.branches10_9_8_7());
         autoChooser.addOption("Center Algae Auto", autos.center0AlgaeRemoval());
         autoChooser.addOption("Drive Straight", autos.driveStraight());
         SmartDashboard.putData("Auto Chooser", autoChooser);
@@ -144,7 +146,7 @@ public class RobotContainer {
         );
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         // joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
-        joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score()), new RunCommand(() -> knuckle.scoreLowSpeed()), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()));
+        joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score(), knuckle), new RunCommand(() -> knuckle.scoreLowSpeed(), knuckle), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );

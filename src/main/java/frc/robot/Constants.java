@@ -103,7 +103,7 @@ public class Constants {
         public static final Pose2d kBLUE6_7 = new Pose2d(2.26, 4.02, Rotation2d.fromDegrees(0));
         public static final Pose2d kBLUE8_9 = new Pose2d(3.24, 6.34, Rotation2d.fromDegrees(-60));
         public static final Pose2d kBLUE10_11 = new Pose2d(5.49, 6.29, Rotation2d.fromDegrees(-120));
-        public static final Pose2d kBLUE10_11_ALGAE = new Pose2d(5.332043170928955, 5.468785762786865, Rotation2d.fromDegrees(-120));
+        public static final Pose2d kBLUE10_11_ALGAE = new Pose2d(5.3, 5.61, Rotation2d.fromDegrees(-120));
         public static final Pose2d kBLUEBarge = new Pose2d(7.259877681732178, 5.142665386199951, Rotation2d.fromDegrees(0));
         
         public static final Pose2d kBLUESOURCERIGHT_center = new Pose2d(1.12, 0.93, Rotation2d.fromDegrees(52));

@@ -53,7 +53,7 @@ public class ElevatorCommand extends Command {
       ff.calculate(
         -pid.calculate(elevator.getSetpoint(), elevator.getElevatorPosition())
       ), 
-      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.5 : 0.9
+      algae.hasAlgae()? -0.2 : -0.6, algae.hasAlgae() ? 0.6 : 0.9
     ));
     // elevator.runElevatorUp(0);
   }

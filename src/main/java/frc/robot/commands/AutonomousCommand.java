@@ -66,8 +66,164 @@ public class AutonomousCommand extends Command {
   public boolean isRed() {
     return DriverStation.getAlliance().get() == Alliance.Red;
   }
-
   public Command branches3_4_5_6() {
+    poseArrays = new Pose2d[] {
+        isRed() ? kRED2_3 : kBLUE2_3,
+        isRed() ? kREDSOURCERIGHT_bargeWall : kBLUESOURCERIGHT_bargeWall,
+        isRed() ? kRED4_5 : kBLUE4_5,
+        isRed() ? kRED2_3 : kBLUE2_3
+    };
+    return new ParallelCommandGroup(
+    Commands.sequence(
+
+        new ParallelCommandGroup(
+            new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+            new InstantCommand(() -> arm.setSetpoint(0.22))),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.25),
+        new ParallelCommandGroup(
+            AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
+            new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+            new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        ),
+
+        new WaitCommand(0.5),
+        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+
+
+        // Piece 2
+        new ParallelCommandGroup( // Transfer height
+            new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+            new InstantCommand(() -> arm.setSetpoint(0.25))),
+        
+        new ParallelRaceGroup(
+            AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+            new TransferCommand(elevator, arm, knuckle, hopper)),
+
+        new WaitCommand(0.2),
+        new InstantCommand(() -> timer.restart()),
+
+        new ParallelCommandGroup(
+            new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3.5 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
+            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)),
+
+        new ConditionalCommand(
+            Commands.sequence(
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ),
+
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+
+                    new WaitCommand(0.2),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+                    // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
+                // Piece 3
+                new ParallelCommandGroup( // Transfer height
+                    new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))
+                ),
+                new ParallelRaceGroup(
+                    AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                    new TransferCommand(elevator, arm, knuckle, hopper)
+                )
+            ),
+            new ParallelRaceGroup(
+                AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                new TransferCommand(elevator, arm, knuckle, hopper)
+            ),
+            () -> knuckle.hasCoral()
+        ),
+        new InstantCommand(() -> timer.restart()),
+
+        drivetrain.setFollowingPath(),
+        new ParallelCommandGroup(
+            new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
+            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
+        ),
+        drivetrain.stopPathFollowState(),
+
+        new ConditionalCommand(
+            Commands.sequence(
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ),
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+                    new WaitCommand(0.2),
+                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
+
+                // Piece 3
+                new ParallelCommandGroup( // Transfer height
+                    new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))
+                ),
+                drivetrain.setFollowingPath(),
+                new ParallelRaceGroup(
+                    AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                    new TransferCommand(elevator, arm, knuckle, hopper)
+                ),
+                new WaitCommand(0.1),
+                drivetrain.stopPathFollowState()
+            ),
+            new ParallelRaceGroup(
+                AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                new TransferCommand(elevator, arm, knuckle, hopper)
+            ),
+            () -> knuckle.hasCoral()
+        ),
+        //4th piece
+        new InstantCommand(() -> timer.restart()),
+        drivetrain.setFollowingPath(),
+        new ParallelCommandGroup(
+            new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3.5 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
+            AutoBuilder.pathfindToPose(poseArrays[3], K_CONSTRAINTS_Fastest)),
+        drivetrain.stopPathFollowState(),
+        new ConditionalCommand(
+            Commands.sequence(
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ).until(() -> elevator.getElevatorPosition() > 0.85),
+                    new WaitCommand(0.75),
+                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
+                // 4.5 piece
+                new ParallelCommandGroup( // Transfer height
+                    new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))),
+                drivetrain.setFollowingPath(),
+                new ParallelRaceGroup(
+                    AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                    new TransferCommand(elevator, arm, knuckle, hopper)
+                ),
+                new WaitCommand(0.1),
+                drivetrain.stopPathFollowState()),
+            new ParallelRaceGroup(
+                AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                new TransferCommand(elevator, arm, knuckle, hopper)),
+            () -> knuckle.hasCoral())
+            
+            ),
+            new ElevatorCommand(elevator, algae),
+            new ArmCommand(arm, elevator)
+    );
+  }
+  public Command branches3_4_5_6_ALLLEFT() {
     poseArrays = new Pose2d[] {
         isRed() ? kRED2_3 : kBLUE2_3,
         isRed() ? kREDSOURCERIGHT_bargeWall : kBLUESOURCERIGHT_bargeWall,
@@ -225,7 +381,165 @@ public class AutonomousCommand extends Command {
     );
   }
 
-  public Command branches10_9_8_7() {
+  public Command branches10_9_8_7ALLLEFT() {
+    poseArrays = new Pose2d[] {
+        isRed() ? kRED10_11 : kBLUE10_11,
+        isRed() ? kREDSOURCELEFT_bargeWall : kBLUESOURCELEFT_bargeWall,
+        isRed() ? kRED8_9 : kBLUE8_9,
+        isRed() ? kRED10_11 : kBLUE10_11
+    };
+    return new ParallelCommandGroup(
+    Commands.sequence(
+
+        new ParallelCommandGroup(
+            new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
+            new InstantCommand(() -> arm.setSetpoint(0.22))),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.25),
+        new ParallelCommandGroup(
+            AutoBuilder.pathfindToPose(poseArrays[0], K_CONSTRAINTS_Fastest),
+            new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+            new InstantCommand(() -> arm.setSetpoint(kArmL4))
+        ),
+
+        new WaitCommand(0.25),
+        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+
+
+        // Piece 2
+        new ParallelCommandGroup( // Transfer height
+            new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+            new InstantCommand(() -> arm.setSetpoint(0.25))),
+        
+        new ParallelRaceGroup(
+            AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+            new TransferCommand(elevator, arm, knuckle, hopper)),
+
+        new WaitCommand(0.2),
+        new InstantCommand(() -> timer.restart()),
+
+        new ParallelCommandGroup(
+            new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3.5 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
+            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)),
+
+        new ConditionalCommand(
+            Commands.sequence(
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ),
+
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+
+                    new WaitCommand(0.2),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+                    // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
+                // Piece 3
+                new ParallelCommandGroup( // Transfer height
+                    new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))
+                ),
+                new ParallelRaceGroup(
+                    AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                    new TransferCommand(elevator, arm, knuckle, hopper)
+                )
+            ),
+            new ParallelRaceGroup(
+                AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                new TransferCommand(elevator, arm, knuckle, hopper)
+            ),
+            () -> knuckle.hasCoral()
+        ),
+        new InstantCommand(() -> timer.restart()),
+
+        drivetrain.setFollowingPath(),
+        new ParallelCommandGroup(
+            new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
+            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
+        ),
+        drivetrain.stopPathFollowState(),
+
+        new ConditionalCommand(
+            Commands.sequence(
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ),
+                    new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
+                    new WaitCommand(0.2),
+                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
+
+                // Piece 3
+                new ParallelCommandGroup( // Transfer height
+                    new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))
+                ),
+                drivetrain.setFollowingPath(),
+                new ParallelRaceGroup(
+                    AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                    new TransferCommand(elevator, arm, knuckle, hopper)
+                ),
+                new WaitCommand(0.1),
+                drivetrain.stopPathFollowState()
+            ),
+            new ParallelRaceGroup(
+                AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                new TransferCommand(elevator, arm, knuckle, hopper)
+            ),
+            () -> knuckle.hasCoral()
+        ),
+        //4th piece
+        new InstantCommand(() -> timer.restart()),
+        drivetrain.setFollowingPath(),
+        new ParallelCommandGroup(
+            new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3.5 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
+            AutoBuilder.pathfindToPose(poseArrays[3], K_CONSTRAINTS_Fastest)),
+        drivetrain.stopPathFollowState(),
+        new ConditionalCommand(
+            Commands.sequence(
+                new SequentialCommandGroup(
+                    new ParallelCommandGroup(
+                        new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
+                        new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                    ).until(() -> elevator.getElevatorPosition() > 0.85),
+                    new WaitCommand(0.75),
+                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+                    // new InstantCommand(() -> arm.setSetpoint(0.14)),
+                    // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
+                    new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+                ),
+                // 4.5 piece
+                new ParallelCommandGroup( // Transfer height
+                    new InstantCommand(() -> elevator.setSetpoint(kElevTran)),
+                    new InstantCommand(() -> arm.setSetpoint(0.25))),
+                drivetrain.setFollowingPath(),
+                new ParallelRaceGroup(
+                    AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                    new TransferCommand(elevator, arm, knuckle, hopper)
+                ),
+                new WaitCommand(0.1),
+                drivetrain.stopPathFollowState()),
+            new ParallelRaceGroup(
+                AutoBuilder.pathfindToPose(poseArrays[1], K_CONSTRAINTS_Fastest),
+                new TransferCommand(elevator, arm, knuckle, hopper)),
+            () -> knuckle.hasCoral())
+            
+            ),
+            new ElevatorCommand(elevator, algae),
+            new ArmCommand(arm, elevator)
+    );
+}
+
+public Command branches10_9_8_7() {
     poseArrays = new Pose2d[] {
         isRed() ? kRED10_11 : kBLUE10_11,
         isRed() ? kREDSOURCELEFT_bargeWall : kBLUESOURCELEFT_bargeWall,
@@ -415,8 +729,10 @@ public class AutonomousCommand extends Command {
   }
 
   public Command center0AlgaeRemoval() {
+    Timer dstime = new Timer();
     return Commands.sequence(
         //Gyro and move arm
+        new InstantCommand(() -> dstime.start()),
         new InstantCommand(() -> drivetrain.getPigeon2().setYaw(isRed() ? 0. : 180.)),
         new InstantCommand(() -> arm.setSetpoint(0.22)),
         new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.25),
@@ -425,13 +741,12 @@ public class AutonomousCommand extends Command {
         new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
         new InstantCommand(() -> arm.setSetpoint(kArmL4)),
         new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.85),
-
+        new WaitCommand(0.75),
         //Both AutoAligns
-        new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
-        knuckle.scoreCmd().until(() -> !knuckle.hasCoral()),
-        new AutomatedAlgaeCommand(algae, drivetrain, driveRR, elevator, arm).onlyWhile(
-            () -> !drivetrain.getTVLeft() && !algae.hasAlgae()
-        ),
+        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator),
+        new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
+        new InstantCommand(() -> knuckle.stopMotor()),
+        new AutomatedAlgaeCommand(algae, drivetrain, driveRR, elevator, arm).until(() -> drivetrain.getTVLeft() && algae.hasAlgae()),
         //Reset Odometry Based on LL Left
         new InstantCommand(() -> drivetrain.resetPose(
             new Pose2d(
@@ -465,12 +780,8 @@ public class AutonomousCommand extends Command {
         ),
         //Driving Back To Reef & collecting algae
         AutoBuilder.pathfindToPose(isRed() ? kRED10_11_ALGAE : kBLUE10_11_ALGAE, K_CONSTRAINTS_Fastest),
-        new ParallelCommandGroup(
-            drivetrain.applyRequest(() -> driveRR.withVelocityX(1.)),
-            new RunCommand(() -> algae.runAlgaeScorer(1.))
-        ).until(() -> algae.hasAlgae()),
-
-        drivetrain.applyRequest(() -> driveRR.withVelocityX(-0.75)).until(() -> drivetrain.getTVLeft()),
+        new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
+        new AutomatedAlgaeCommand(algae, drivetrain, driveRR, elevator, arm).until(() -> drivetrain.getTVLeft() && algae.hasAlgae()),
         new InstantCommand(() -> drivetrain.resetPose(
             new Pose2d(
                 drivetrain.getLeftLLPose().getX(),
@@ -487,13 +798,51 @@ public class AutonomousCommand extends Command {
             new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.34)
         )
         ),
-
+    //6.8, 10.7
         //Scoring Algae
         new ParallelCommandGroup(
             new RunCommand(() -> algae.score()).until(() -> !algae.hasAlgae()),
             new InstantCommand(() -> arm.setSetpoint(0.25))
         ),
-        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.3)
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.3),
+        new ParallelCommandGroup(
+          new InstantCommand(() -> elevator.setSetpoint(0.58)),
+          new InstantCommand(() -> arm.setSetpoint(0.19))
+        ),
+        //Driving Back To Reef & collecting algae
+        AutoBuilder.pathfindToPose(isRed() ? kRED2_3 : kBLUE2_3, K_CONSTRAINTS_Fastest),
+        new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
+        new AutomatedAlgaeCommand(algae, drivetrain, driveRR, elevator, arm).until(() -> drivetrain.getTVLeft() && algae.hasAlgae()),
+        new InstantCommand(() -> drivetrain.resetPose(
+            new Pose2d(
+                drivetrain.getLeftLLPose().getX(),
+                drivetrain.getLeftLLPose().getY(),
+                drivetrain.getPigeon2().getRotation2d())
+            )
+        ),
+        new ParallelCommandGroup(
+        AutoBuilder.pathfindToPose(isRed() ? kREDBarge : kBLUEBarge, K_CONSTRAINTS_Barging),
+        new SequentialCommandGroup(
+            new InstantCommand(() -> elevator.setSetpoint(0.9985)),
+            new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.95),
+            new InstantCommand(() -> arm.setSetpoint(0.35)),
+            new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.34)
+        )
+        ),
+    //6.8, 10.7
+        //Scoring Algae
+        new ParallelCommandGroup(
+            new RunCommand(() -> algae.score()).until(() -> !algae.hasAlgae()),
+            new InstantCommand(() -> arm.setSetpoint(0.25))
+        ),
+        new WaitUntilCommand(() -> arm.getEncoderPosition() < 0.3),
+        AutoBuilder.pathfindToPose(kBLUE10_11, K_CONSTRAINTS_Fastest)
+    ).until(() -> dstime.get() > 13.5).andThen(
+        new ConditionalCommand(
+            AutoBuilder.pathfindToPose(kBLUE10_11, K_CONSTRAINTS_Fastest),
+            Commands.none(),
+            () -> drivetrain.getPose().getX() < 10.7 && drivetrain.getPose().getX() > 6.8
+        )
     );
   }
 

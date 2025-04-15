@@ -26,7 +26,7 @@ public class AlgaeScorer extends SubsystemBase {
   // Continuously updates SmartDashboard with algae detection status
   @Override
   public void periodic() {
-    if (threshold()) {
+    if (threshold() && scoreCount == 0) {
       algaeCount ++;
     }
     if (scoreCount > 5) {
@@ -40,9 +40,6 @@ public class AlgaeScorer extends SubsystemBase {
   // Controls the algae scorer motor speed (-1.0 to 1.0)
   public void runAlgaeScorer(double speed) {
     motor.set(speed);
-    if (speed < 0) {
-      score();
-    }
   }
 
   // Safely stops the motor by setting speed to zero
