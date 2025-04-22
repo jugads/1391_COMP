@@ -59,7 +59,7 @@ public class Constants {
         public static final double kElevL2 = 0.16; 
         public static final double kElevL3 = 0.51;
         public static final double kElevL4 = 0.94;
-        public static final double kElevTran = 0.3725;
+        public static final double kElevTran = 0.38; //0.3775
     }
     public class ArmConstants{
         public static final int kMotorID = 3;
@@ -86,7 +86,7 @@ public class Constants {
         public static final Pose2d kRED8_9 = new Pose2d(14.44, 1.67, Rotation2d.fromDegrees(120));
         public static final Pose2d kRED10_11 = new Pose2d(11.99, 1.85, Rotation2d.fromDegrees(60));
         public static final Pose2d kRED10_11_ALGAE = new Pose2d(12.257259368896484, 2.6072371006011963, Rotation2d.fromDegrees(60));
-        public static final Pose2d kREDBarge = new Pose2d(10.36788272857666, 3.2843942642211914, Rotation2d.fromDegrees(-180));
+        public static final Pose2d kREDBarge = new Pose2d(10.1, 3.2843942642211914, Rotation2d.fromDegrees(-180));
 
         public static final Pose2d kREDSOURCERIGHT_center = new Pose2d(16.42, 7.06, Rotation2d.fromDegrees(-128));
         public static final Pose2d kREDSOURCERIGHT_bargeWall = new Pose2d(15.93, 7.46, Rotation2d.fromDegrees(-128));
@@ -100,7 +100,7 @@ public class Constants {
         public static final Pose2d kBLUE0_1 = new Pose2d(6.35, 4.06, Rotation2d.fromDegrees(180)); 
         public static final Pose2d kBLUE2_3 = new Pose2d(5.68, 1.72, Rotation2d.fromDegrees(120));
         public static final Pose2d kBLUE4_5 = new Pose2d(3.1, 1.75, Rotation2d.fromDegrees(60));
-        public static final Pose2d kBLUE6_7 = new Pose2d(2.26, 4.02, Rotation2d.fromDegrees(0));
+        public static final Pose2d kBLUE6_7 = new Pose2d(2.1, 4.08, Rotation2d.fromDegrees(0));
         public static final Pose2d kBLUE8_9 = new Pose2d(3.24, 6.34, Rotation2d.fromDegrees(-60));
         public static final Pose2d kBLUE10_11 = new Pose2d(5.49, 6.29, Rotation2d.fromDegrees(-120));
         public static final Pose2d kBLUE10_11_ALGAE = new Pose2d(5.3, 5.61, Rotation2d.fromDegrees(-120));

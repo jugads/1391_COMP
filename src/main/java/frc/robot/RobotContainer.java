@@ -29,8 +29,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.ArmCommand;
 import frc.robot.commands.AutoAlignCommand;
+import frc.robot.commands.AutoCollectCommand;
 import frc.robot.commands.AutomatedAlgaeCommand;
 import frc.robot.commands.ElevatorCommand;
+import frc.robot.commands.IntakePivotCommand;
 import frc.robot.commands.KnuckleCommand;
 import frc.robot.commands.TransferCommand;
 import frc.robot.commands.AutonomousCommand;
@@ -40,6 +42,7 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Knuckle;
 import frc.robot.subsystems.Leds;
 import frc.robot.subsystems.Hopper;
@@ -84,6 +87,7 @@ public class RobotContainer {
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer, drivetrain);
     public final Hopper hopper = new Hopper();
     public final Climber climber = new Climber();
+    public final GroundIntake intake = new GroundIntake();
     public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle, algaeScorer);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
@@ -133,6 +137,12 @@ public class RobotContainer {
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
+        intake.setDefaultCommand(
+            new ParallelCommandGroup(
+                new RunCommand(() -> intake.runIntake(false, 0.)),
+                new IntakePivotCommand(intake, true)
+            )
+        );
     }
 
     private void configureDriverControls() {
@@ -146,16 +156,23 @@ public class RobotContainer {
         );
         // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         // joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
-        joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score(), knuckle), new RunCommand(() -> knuckle.scoreLowSpeed(), knuckle), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()));
+        joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score(), knuckle), new RunCommand(() -> knuckle.scoreLowSpeed(), knuckle), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()).andThen(new ConditionalCommand(new InstantCommand(() -> elevator.setSetpoint(kElevL1+0.04)), Commands.none(), () -> arm.getEncoderPosition() < 0.)));
         // joystick.rightBumper().whileTrue(
         //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
         // );
         joystick.y().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
         joystick.b().whileTrue(
-            AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCERIGHT_center : kBLUESOURCERIGHT_center, K_CONSTRAINTS_Fastest)
+            new RunCommand(() -> knuckle.score(), knuckle)
         );
         joystick.x().whileTrue(
-            AutoBuilder.pathfindToPose(DriverStation.getAlliance().get() == Alliance.Red ? kREDSOURCELEFT_center : kBLUESOURCELEFT_center, K_CONSTRAINTS_Fastest)
+            new SequentialCommandGroup(
+            new IntakePivotCommand(intake, false),
+            new ParallelCommandGroup(
+                new AutoCollectCommand(drivetrain, driveRR),
+                new RunCommand(() -> intake.runIntake(true, 0.8))
+            ).until(() -> intake.intakeHasCoral()),
+            new IntakePivotCommand(intake, true)
+            )
         );
         joystick.rightBumper().whileTrue(
             drivetrain.applyRequest(() ->
@@ -304,7 +321,10 @@ public class RobotContainer {
             )
         );
         operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
             new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm)
+            )
         );
         operator.axisGreaterThan(operator.getYChannel(), 0.99).whileTrue(
             new ParallelCommandGroup(
@@ -316,20 +336,26 @@ public class RobotContainer {
         operator.button(
             kAL2
         ).whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.31)),
                 new InstantCommand(() -> arm.setSetpoint(0.165)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
             )
         );
         //Algae l3
         operator.button(
             kAL3
         ).whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.57)),
                 new InstantCommand(() -> arm.setSetpoint(0.19)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
             )
         );
         operator.button(kT).whileTrue(
@@ -387,11 +413,41 @@ public class RobotContainer {
         manual.b().whileTrue(
             new RunCommand(() -> knuckle.setKnuckleMotorHigh())
         );
-        manual.povDown().whileTrue(
-            new RunCommand(() -> hopper.runBoth(-0.5, -1), hopper)
+        manual.povLeft().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(0) // Drive forward with negative Y (forward)
+            .withVelocityY(0.75) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
+        );
+        manual.povRight().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(0) // Drive forward with negative Y (forward)
+            .withVelocityY(-0.75) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
         );
         manual.povUp().whileTrue(
-            new RunCommand(() -> hopper.runBoth(0.5, 1), hopper)
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(0.75) // Drive forward with negative Y (forward)
+            .withVelocityY(0) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
+        );
+        manual.povDown().whileTrue(
+            drivetrain.applyRequest(
+            () ->
+            driveRR
+            .withVelocityX(-0.75) // Drive forward with negative Y (forward)
+            .withVelocityY(0) // Drive left with negative X (left)
+            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        )
         );
         manual.start().whileTrue(
             new InstantCommand(() -> knuckle.setHasCoral())

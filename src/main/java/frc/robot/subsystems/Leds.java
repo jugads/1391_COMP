@@ -27,6 +27,7 @@ public class Leds extends SubsystemBase {
   //Chute chute;
   boolean def = true;
   boolean transferring = false;
+  boolean autoCollecting = false;
   public Leds(AddressableLED leds, AddressableLEDBuffer buffer, Arm arm, Knuckle knuckle, AlgaeScorer algaeScorer, CommandSwerveDrivetrain drivetrain) {
     this.leds = leds;
     this.buffer = buffer;
@@ -79,6 +80,9 @@ public class Leds extends SubsystemBase {
       } */
     if (drivetrain.isAligning()) {
       flash(Color.kGold);
+    }
+    else if (autoCollecting) {
+      flash(Color.kPurple);
     }
     else if (knuckle.hasCoral()) {
       flash(Color.kWhiteSmoke);

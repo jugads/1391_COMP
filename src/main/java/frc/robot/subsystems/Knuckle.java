@@ -31,7 +31,7 @@ public class Knuckle extends SubsystemBase {
     if (motor.getOutputCurrent() >= 17 && !hasCoral()) {
       coralCount ++;
     }
-    else if (shouldReset && motor.getOutputCurrent() == 0) {
+    if (!hasCoral() && motor.getOutputCurrent() == 0) {
       coralCount = 0;
     }
     if (scoreCount > 8) {
@@ -49,6 +49,7 @@ public class Knuckle extends SubsystemBase {
     SmartDashboard.putBoolean("Should Reset", shouldReset);
     SmartDashboard.putNumber("Coral Count", coralCount);
     SmartDashboard.putNumber("Score", motor.get());
+    SmartDashboard.putNumber("Score count", scoreCount);
     // This method will be called once per scheduler run
   }
 
@@ -81,6 +82,7 @@ public class Knuckle extends SubsystemBase {
   public void setCoralStateFalse() {
     coralCount = 0;
     scoreCount = 0;
+    shouldReset = true;
   }
   // Retrieves the current draw from the motor for coral detection
   public double getCurrent() {

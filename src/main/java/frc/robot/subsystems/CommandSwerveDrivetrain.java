@@ -473,4 +473,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     ) {
         super.addVisionMeasurement(visionRobotPoseMeters, Utils.fpgaToCurrentTime(timestampSeconds), visionMeasurementStdDevs);
     }
+
+    public double getTYIntakeLL() {
+        return getTYLeft();
+    }
+
+    public double getTXIntakeLL() {
+        return getTXLeft();
+    }
 }

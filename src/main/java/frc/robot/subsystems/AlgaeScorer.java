@@ -34,6 +34,7 @@ public class AlgaeScorer extends SubsystemBase {
       scoreCount = 0;
     }
     SmartDashboard.putBoolean("Has Algae", hasAlgae());
+    SmartDashboard.putNumber("A Current", getAlgaeScorerCurrent());
     // This method will be called once per scheduler run
   }
 
@@ -54,12 +55,15 @@ public class AlgaeScorer extends SubsystemBase {
   public double getAlgaeScorerCurrent() {
     return motor.getStatorCurrent().getValueAsDouble();
   }
-
+  public void resetGripper() {
+    scoreCount = 0;
+    algaeCount = 0;
+  }
   // Determines if algae is present based on motor current threshold
   public boolean threshold() {
     return getAlgaeScorerCurrent() > 50;
   }
   public boolean hasAlgae() {
-    return algaeCount > 10;
+    return algaeCount > 7;
   }
 }

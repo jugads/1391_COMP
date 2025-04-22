@@ -37,7 +37,7 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.03685, 0., 0.0013);
+  PIDController distanceController = new PIDController(0.03695, 0., 0.0013);
   PIDController distanceControllerRight = new PIDController(0.0362, 0., 0.0013);
   // Y control: Lower gains for lateral movement
   PIDController lateralController = new PIDController(0.01, 0., 0.0003);
@@ -101,10 +101,10 @@ public class AutoAlignCommand extends Command {
     else {
       thetaController.setSetpoint(-60);
     }
-    distanceController.setSetpoint((aligningL4 ? 4. : 1.25));
-    distanceControllerRight.setSetpoint((aligningL4 ? -1.6 : -2.15));
+    distanceController.setSetpoint((aligningL4 ? 3.9 : 1.25));
+    distanceControllerRight.setSetpoint((aligningL4 ? -0.95 : -2.15));
     lateralControllerAuto.setSetpoint(aligningL4 ? (aligningLeft ? 1.5 : 0.5) : (aligningLeft ? -1.25 : -1));
-    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.5 : 0.25) : (aligningLeft ? -1.25 : -0.75));
+    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.15 : 0.) : (aligningLeft ? -1.25 : -0.25));
     // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
@@ -194,7 +194,7 @@ public class AutoAlignCommand extends Command {
     // Command completes when either:
     // - X position is within tolerance
     // - Target visibility is lost for the selected camera
-    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || (Math.abs(distanceController.getSetpoint() - getMeasurement()) < 1.) || distanceController.atSetpoint() || (Math.abs(distanceControllerRight.getSetpoint() - getMeasurement()) < 1.) || distanceControllerRight.atSetpoint();
+    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || (Math.abs(distanceController.getSetpoint() - getMeasurement()) < (DriverStation.isAutonomous() ? 2. : 1.) || distanceController.atSetpoint() || (Math.abs(distanceControllerRight.getSetpoint() - getMeasurement()) < (DriverStation.isAutonomous() ? 2. : 1.)) || distanceControllerRight.atSetpoint());
   }
   public double getMeasurement() {
     return aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft();
