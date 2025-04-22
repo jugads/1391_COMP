@@ -2,10 +2,12 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -36,8 +38,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
-
+import static frc.robot.LimelightHelpers.*;
 import static frc.robot.Constants.AlignmentPoses.*;
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -59,7 +62,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     NetworkTable m_limelightRight = NetworkTableInstance.getDefault().getTable("limelight-fright");
     NetworkTable m_limelightLeft = NetworkTableInstance.getDefault().getTable("limelight-fleft");
     private final SwerveRequest.ApplyRobotSpeeds m_ApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
-    private boolean otfFollowing = false;
+    private boolean needsVisionReset = false;
+    private boolean isSkidding = false;
+    private boolean isSpinning = false;
+    private boolean shouldUpdateWithVision = false;
     private boolean autoScore = false;
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -129,228 +135,239 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     /* The SysId routine to test */
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
-
-    /**
-     * Constructs a CTRE SwerveDrivetrain using the specified constants.
-     * <p>
-     * This constructs the underlying hardware devices, so users should not construct
-     * the devices themselves. If they need the devices, they can access them through
-     * getters in the classes.
-     *
-     * @param drivetrainConstants   Drivetrain-wide constants for the swerve drive
-     * @param modules               Constants for each specific module
-     */
-    public CommandSwerveDrivetrain(
-        SwerveDrivetrainConstants drivetrainConstants,
-        SwerveModuleConstants<?, ?, ?>... modules
-    ) {
-        super(drivetrainConstants, modules);
-        if (Utils.isSimulation()) {
-            startSimThread();
+        private boolean otfFollowing;
+    
+        /**
+         * Constructs a CTRE SwerveDrivetrain using the specified constants.
+         * <p>
+         * This constructs the underlying hardware devices, so users should not construct
+         * the devices themselves. If they need the devices, they can access them through
+         * getters in the classes.
+         *
+         * @param drivetrainConstants   Drivetrain-wide constants for the swerve drive
+         * @param modules               Constants for each specific module
+         */
+        public CommandSwerveDrivetrain(
+            SwerveDrivetrainConstants drivetrainConstants,
+            SwerveModuleConstants<?, ?, ?>... modules
+        ) {
+            super(drivetrainConstants, modules);
+            if (Utils.isSimulation()) {
+                startSimThread();
+            }
+            configureAutoBuilder();
         }
-        configureAutoBuilder();
-    }
-
-    /**
-     * Constructs a CTRE SwerveDrivetrain using the specified constants.
-     * <p>
-     * This constructs the underlying hardware devices, so users should not construct
-     * the devices themselves. If they need the devices, they can access them through
-     * getters in the classes.
-     *
-     * @param drivetrainConstants     Drivetrain-wide constants for the swerve drive
-     * @param odometryUpdateFrequency The frequency to run the odometry loop. If
-     *                                unspecified or set to 0 Hz, this is 250 Hz on
-     *                                CAN FD, and 100 Hz on CAN 2.0.
-     * @param modules                 Constants for each specific module
-     */
-    public CommandSwerveDrivetrain(
-        SwerveDrivetrainConstants drivetrainConstants,
-        double odometryUpdateFrequency,
-        SwerveModuleConstants<?, ?, ?>... modules
-    ) {
-        super(drivetrainConstants, odometryUpdateFrequency, modules);
-        if (Utils.isSimulation()) {
-            startSimThread();
+    
+        /**
+         * Constructs a CTRE SwerveDrivetrain using the specified constants.
+         * <p>
+         * This constructs the underlying hardware devices, so users should not construct
+         * the devices themselves. If they need the devices, they can access them through
+         * getters in the classes.
+         *
+         * @param drivetrainConstants     Drivetrain-wide constants for the swerve drive
+         * @param odometryUpdateFrequency The frequency to run the odometry loop. If
+         *                                unspecified or set to 0 Hz, this is 250 Hz on
+         *                                CAN FD, and 100 Hz on CAN 2.0.
+         * @param modules                 Constants for each specific module
+         */
+        public CommandSwerveDrivetrain(
+            SwerveDrivetrainConstants drivetrainConstants,
+            double odometryUpdateFrequency,
+            SwerveModuleConstants<?, ?, ?>... modules
+        ) {
+            super(drivetrainConstants, odometryUpdateFrequency, modules);
+            if (Utils.isSimulation()) {
+                startSimThread();
+            }
+            configureAutoBuilder();
         }
-        configureAutoBuilder();
-    }
-
-    /**
-     * Constructs a CTRE SwerveDrivetrain using the specified constants.
-     * <p>
-     * This constructs the underlying hardware devices, so users should not construct
-     * the devices themselves. If they need the devices, they can access them through
-     * getters in the classes.
-     *
-     * @param drivetrainConstants       Drivetrain-wide constants for the swerve drive
-     * @param odometryUpdateFrequency   The frequency to run the odometry loop. If
-     *                                  unspecified or set to 0 Hz, this is 250 Hz on
-     *                                  CAN FD, and 100 Hz on CAN 2.0.
-     * @param odometryStandardDeviation The standard deviation for odometry calculation
-     *                                  in the form [x, y, theta]ᵀ, with units in meters
-     *                                  and radians
-     * @param visionStandardDeviation   The standard deviation for vision calculation
-     *                                  in the form [x, y, theta]ᵀ, with units in meters
-     *                                  and radians
-     * @param modules                   Constants for each specific module
-     */
-    public CommandSwerveDrivetrain(
-        SwerveDrivetrainConstants drivetrainConstants,
-        double odometryUpdateFrequency,
-        Matrix<N3, N1> odometryStandardDeviation,
-        Matrix<N3, N1> visionStandardDeviation,
-        SwerveModuleConstants<?, ?, ?>... modules
-    ) {
-        super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
-        if (Utils.isSimulation()) {
-            startSimThread();
+    
+        /**
+         * Constructs a CTRE SwerveDrivetrain using the specified constants.
+         * <p>
+         * This constructs the underlying hardware devices, so users should not construct
+         * the devices themselves. If they need the devices, they can access them through
+         * getters in the classes.
+         *
+         * @param drivetrainConstants       Drivetrain-wide constants for the swerve drive
+         * @param odometryUpdateFrequency   The frequency to run the odometry loop. If
+         *                                  unspecified or set to 0 Hz, this is 250 Hz on
+         *                                  CAN FD, and 100 Hz on CAN 2.0.
+         * @param odometryStandardDeviation The standard deviation for odometry calculation
+         *                                  in the form [x, y, theta]ᵀ, with units in meters
+         *                                  and radians
+         * @param visionStandardDeviation   The standard deviation for vision calculation
+         *                                  in the form [x, y, theta]ᵀ, with units in meters
+         *                                  and radians
+         * @param modules                   Constants for each specific module
+         */
+        public CommandSwerveDrivetrain(
+            SwerveDrivetrainConstants drivetrainConstants,
+            double odometryUpdateFrequency,
+            Matrix<N3, N1> odometryStandardDeviation,
+            Matrix<N3, N1> visionStandardDeviation,
+            SwerveModuleConstants<?, ?, ?>... modules
+        ) {
+            super(drivetrainConstants, odometryUpdateFrequency, odometryStandardDeviation, visionStandardDeviation, modules);
+            if (Utils.isSimulation()) {
+                startSimThread();
+            }
+            configureAutoBuilder();
         }
-        configureAutoBuilder();
-    }
-
-    /**
-     * Returns a command that applies the specified control request to this swerve drivetrain.
-     *
-     * @param request Function returning the request to apply
-     * @return Command to run
-     */
-    public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
-        return run(() -> this.setControl(requestSupplier.get()));
-    }
-
-    /**
-     * Runs the SysId Quasistatic test in the given direction for the routine
-     * specified by {@link #m_sysIdRoutineToApply}.
-     *
-     * @param direction Direction of the SysId Quasistatic test
-     * @return Command to run
-     */
-    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.quasistatic(direction);
-    }
-
-    /**
-     * Runs the SysId Dynamic test in the given direction for the routine
-     * specified by {@link #m_sysIdRoutineToApply}.
-     *
-     * @param direction Direction of the SysId Dynamic test
-     * @return Command to run
-     */
-    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.dynamic(direction);
-    }
-
-    @Override
-    public void periodic() {
-      // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
-      // SmartDashboard.putNumber("Distance sensed", getSensorVal());
-        pose.update(getPigeon2().getRotation2d(), getModulePositions());
-        // if (!DriverStation.isAutonomous()) {
-        if (getTVLeft()) {
-            if ((Math.abs(getPose().getX() - getLeftLLPose().getX()) > 3. || (Math.abs(getPose().getY() - getLeftLLPose().getY()) > 3.)) && !otfFollowing) {
-              pose.resetPose(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()));
+    
+        /**
+         * Returns a command that applies the specified control request to this swerve drivetrain.
+         *
+         * @param request Function returning the request to apply
+         * @return Command to run
+         */
+        public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
+            return run(() -> this.setControl(requestSupplier.get()));
+        }
+    
+        /**
+         * Runs the SysId Quasistatic test in the given direction for the routine
+         * specified by {@link #m_sysIdRoutineToApply}.
+         *
+         * @param direction Direction of the SysId Quasistatic test
+         * @return Command to run
+         */
+        public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+            return m_sysIdRoutineToApply.quasistatic(direction);
+        }
+    
+        /**
+         * Runs the SysId Dynamic test in the given direction for the routine
+         * specified by {@link #m_sysIdRoutineToApply}.
+         *
+         * @param direction Direction of the SysId Dynamic test
+         * @return Command to run
+         */
+        public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+            return m_sysIdRoutineToApply.dynamic(direction);
+        }
+    
+        @Override
+        public void periodic() {
+          // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
+          // SmartDashboard.putNumber("Distance sensed", getSensorVal());
+            pose.update(getPigeon2().getRotation2d(), getModulePositions());
+            checkForSkid();
+            // if (!DriverStation.isAutonomous()) {
+            if (getKinematics().toChassisSpeeds().omegaRadiansPerSecond > 2) {
+              shouldUpdateWithVision = false;
             }
             else {
-            pose.addVisionMeasurement(new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d()), Utils.getCurrentTimeSeconds()-(m_limelightLeft.getEntry("tl").getDouble(0.))/1000);
-            SmartDashboard.putBoolean("Updating?", true);
+              shouldUpdateWithVision = true;
             }
-            // lastPose = new Pose2d(getLeftLLPose().getTranslation(), getPigeon2().getRotation2d());
+            if (isSkidding) {
+              needsVisionReset = true;
+            }
+            else {
+              needsVisionReset = false;
+            }
+            if (shouldUpdateWithVision && needsVisionReset && getTVLeft()) {
+              resetPose(new Pose2d(getLeftLLPose().getX(), getLeftLLPose().getY(), getPigeon2().getRotation2d()));
+            }
+            else if (shouldUpdateWithVision && getTVLeft()) {
+              pose.addVisionMeasurement(getLeftLLPose(), Utils.getCurrentTimeSeconds() - m_limelightLeft.getEntry("tl").getDouble(0.)/1000);
+            }
+            LimelightHelpers.SetRobotOrientation("limelight-fleft", pose.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+            var array = new double[] {
+                getPose().getX(),
+                getPose().getY(),
+                getPose().getRotation().getRadians(),
+            };
+            SmartDashboard.putNumberArray("MyPose", array);
+            // SmartDashboard.putNumber("Rot", getPose().getRotation().getDegrees());
+            /*
+             * Periodically try to apply the operator perspective.
+             * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
+             * This allows us to correct the perspective in case the robot code restarts mid-match.
+             * Otherwise, only check and apply the operator perspective if the DS is disabled.
+             * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
+             */
+            if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
+                DriverStation.getAlliance().ifPresent(allianceColor -> {
+                    setOperatorPerspectiveForward(
+                        allianceColor == Alliance.Red
+                            ? kRedAlliancePerspectiveRotation
+                            : kBlueAlliancePerspectiveRotation
+                    );
+                    m_hasAppliedOperatorPerspective = true;
+                });
+            }
         }
-        var array = new double[] {
-            getPose().getX(),
-            getPose().getY(),
-            getPose().getRotation().getRadians(),
-        };
-        SmartDashboard.putNumberArray("MyPose", array);
-        // SmartDashboard.putNumber("Rot", getPose().getRotation().getDegrees());
-        /*
-         * Periodically try to apply the operator perspective.
-         * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
-         * This allows us to correct the perspective in case the robot code restarts mid-match.
-         * Otherwise, only check and apply the operator perspective if the DS is disabled.
-         * This ensures driving behavior doesn't change until an explicit disable event occurs during testing.
-         */
-        if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
-            DriverStation.getAlliance().ifPresent(allianceColor -> {
-                setOperatorPerspectiveForward(
-                    allianceColor == Alliance.Red
-                        ? kRedAlliancePerspectiveRotation
-                        : kBlueAlliancePerspectiveRotation
-                );
-                m_hasAppliedOperatorPerspective = true;
+    
+        private void startSimThread() {
+            m_lastSimTime = Utils.getCurrentTimeSeconds();
+    
+            /* Run simulation at a faster rate so PID gains behave more reasonably */
+            m_simNotifier = new Notifier(() -> {
+                final double currentTime = Utils.getCurrentTimeSeconds();
+                double deltaTime = currentTime - m_lastSimTime;
+                m_lastSimTime = currentTime;
+    
+                /* use the measured time delta, get battery voltage from WPILib */
+                updateSimState(deltaTime, RobotController.getBatteryVoltage());
             });
+            m_simNotifier.startPeriodic(kSimLoopPeriod);
         }
-    }
-
-    private void startSimThread() {
-        m_lastSimTime = Utils.getCurrentTimeSeconds();
-
-        /* Run simulation at a faster rate so PID gains behave more reasonably */
-        m_simNotifier = new Notifier(() -> {
-            final double currentTime = Utils.getCurrentTimeSeconds();
-            double deltaTime = currentTime - m_lastSimTime;
-            m_lastSimTime = currentTime;
-
-            /* use the measured time delta, get battery voltage from WPILib */
-            updateSimState(deltaTime, RobotController.getBatteryVoltage());
-        });
-        m_simNotifier.startPeriodic(kSimLoopPeriod);
-    }
-
-    /*-------------------------------------------------------------------------------------
-      -------------------------------------------------------------------------------------
-      -------------------------------------------------------------------------------------
-      */
-      public SwerveModulePosition[] getModulePositions() {
-        return getState().ModulePositions;
-      }
-      public Pose2d getPose() {
-        return pose.getEstimatedPosition();
-      }
-      public void resetPose(Pose2d rpose) {
-        pose.resetPose(rpose);
-      }
-      public Command setAlignmentPose() {
-        if (getTVLeft()) {
-        return new InstantCommand(() -> pose.resetPose(new Pose2d(getLeftLLPose().getX(), getLeftLLPose().getY(), getPigeon2().getRotation2d())));
-        }
-        else {
-          return Commands.none();
-        }
-      }
-      public void resetGyro(double angle) {
-        getPigeon2().setYaw(angle);
-      }
-      public void setShouldAutoScore() {
-        autoScore = true;
-      }
-      public void turnOffAutoScore() {
-        autoScore = false;
-      }
-      public boolean getAutoScoreVal() {
-        return autoScore;
-      }
-      public double getTXLeft() {
-        return m_limelightLeft.getEntry("tx").getDouble(0.);
-      }
-      public double getTYLeft() {
-        return m_limelightLeft.getEntry("ty").getDouble(0.);
-      }
-      public boolean getTVLeft() {
-        return m_limelightLeft.getEntry("tv").getDouble(0.) == 1.;
-      }
-      public double getSensorVal() {
-        return sensor.getVoltage();
-      }
-      public double getTIDLeft() {
-        return m_limelightLeft.getEntry("tid").getDouble(0);
-      }
-      public double getTIDRight() {
-        return m_limelightRight.getEntry("tid").getDouble(0);
-      }
-      public Command setFollowingPath() {
-        return new InstantCommand(() -> otfFollowing = true);
+    
+        /*-------------------------------------------------------------------------------------
+          -------------------------------------------------------------------------------------
+          -------------------------------------------------------------------------------------
+          */
+          public SwerveModulePosition[] getModulePositions() {
+            return getState().ModulePositions;
+          }
+          public Pose2d getPose() {
+            return pose.getEstimatedPosition();
+          }
+          public void resetPose(Pose2d rpose) {
+            pose.resetPose(rpose);
+          }
+          public Command setAlignmentPose() {
+            if (getTVLeft()) {
+            return new InstantCommand(() -> pose.resetPose(new Pose2d(getLeftLLPose().getX(), getLeftLLPose().getY(), getPigeon2().getRotation2d())));
+            }
+            else {
+              return Commands.none();
+            }
+          }
+          public void resetGyro(double angle) {
+            getPigeon2().setYaw(angle);
+          }
+          public void setShouldAutoScore() {
+            autoScore = true;
+          }
+          public void turnOffAutoScore() {
+            autoScore = false;
+          }
+          public boolean getAutoScoreVal() {
+            return autoScore;
+          }
+          public double getTXLeft() {
+            return m_limelightLeft.getEntry("tx").getDouble(0.);
+          }
+          public double getTYLeft() {
+            return m_limelightLeft.getEntry("ty").getDouble(0.);
+          }
+          public boolean getTVLeft() {
+            return m_limelightLeft.getEntry("tv").getDouble(0.) == 1.;
+          }
+          public double getSensorVal() {
+            return sensor.getVoltage();
+          }
+          public double getTIDLeft() {
+            return m_limelightLeft.getEntry("tid").getDouble(0);
+          }
+          public double getTIDRight() {
+            return m_limelightRight.getEntry("tid").getDouble(0);
+          }
+          public Command setFollowingPath() {
+            return new InstantCommand(() -> otfFollowing = true);
       }
       public Command stopPathFollowState() {
         return new InstantCommand(() -> otfFollowing = false);
@@ -397,7 +414,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         var array = m_limelightLeft.getEntry("botpose_wpiblue").getDoubleArray(new double[]{0,0,0,0,0,0});
         double[] result = {array[0], array[1], array[5]};
         Pose2d pose = new Pose2d(result[0], result[1], new Rotation2d(result[2]));
-        return pose;
+        // return pose;
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft").pose;
       }
       public double getTXRight() {
         return m_limelightRight.getEntry("tx").getDouble(0.);
@@ -480,5 +498,23 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     public double getTXIntakeLL() {
         return getTXLeft();
+    }
+    public void checkForSkid() {
+      TalonFX[] driveMotors = new TalonFX[4];
+      driveMotors[0] = getModules()[0].getDriveMotor();
+      driveMotors[1] = getModules()[1].getDriveMotor();
+      driveMotors[2] = getModules()[2].getDriveMotor();
+      driveMotors[3] = getModules()[3].getDriveMotor();
+      var averageCurrent = 0;
+      for (int i=0; i<3; i++) {
+        averageCurrent += driveMotors[i].getStatorCurrent().getValueAsDouble();
+      }
+      averageCurrent /= 4;
+      if (averageCurrent > 60) {
+        isSkidding = true;
+      }
+      else {
+        isSkidding = false;
+      }
     }
 }
