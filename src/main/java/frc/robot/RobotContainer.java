@@ -165,6 +165,7 @@ public class RobotContainer {
             new RunCommand(() -> knuckle.score(), knuckle)
         );
         joystick.x().whileTrue(
+            new ParallelCommandGroup(
             new SequentialCommandGroup(
             new IntakePivotCommand(intake, false),
             new ParallelCommandGroup(
@@ -172,6 +173,8 @@ public class RobotContainer {
                 new RunCommand(() -> intake.runIntake(true, 0.8))
             ).until(() -> intake.intakeHasCoral()),
             new IntakePivotCommand(intake, true)
+            ),
+            new RunCommand(() -> leds.setAutoCollecting(true), leds)
             )
         );
         joystick.rightBumper().whileTrue(

@@ -123,6 +123,9 @@ public class Leds extends SubsystemBase {
   public void setDef(boolean set) {
     def=set;
   }
+  public void setAutoCollecting(boolean set) {
+    def=autoCollecting;
+  }
   // Sets the color of the bottom half of the LED strip
   public void setBottom(Color color) {
     int midPoint = buffer.getLength() / 2;
