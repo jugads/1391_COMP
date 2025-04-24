@@ -499,6 +499,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public double getTXIntakeLL() {
         return getTXLeft();
     }
+    public boolean getTVIntakeLL() {
+        return getTVLeft();
+    }
     public void checkForSkid() {
       TalonFX[] driveMotors = new TalonFX[4];
       driveMotors[0] = getModules()[0].getDriveMotor();
