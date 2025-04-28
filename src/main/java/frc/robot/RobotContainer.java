@@ -87,7 +87,7 @@ public class RobotContainer {
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer, drivetrain);
     public final Hopper hopper = new Hopper();
     public final Climber climber = new Climber();
-    public final GroundIntake intake = new GroundIntake();
+    // public final GroundIntake intake = new GroundIntake();
     public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle, algaeScorer);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
@@ -137,12 +137,12 @@ public class RobotContainer {
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
-        intake.setDefaultCommand(
-            new ParallelCommandGroup(
-                new RunCommand(() -> intake.runIntake(false, 0.)),
-                new IntakePivotCommand(intake, true)
-            )
-        );
+        // intake.setDefaultCommand(
+        //     new ParallelCommandGroup(
+        //         new RunCommand(() -> intake.runIntake(false, 0.)),
+        //         new IntakePivotCommand(intake, true)
+        //     )
+        // );
     }
 
     private void configureDriverControls() {
@@ -164,16 +164,16 @@ public class RobotContainer {
         joystick.b().whileTrue(
             new RunCommand(() -> knuckle.score(), knuckle)
         );
-        joystick.x().whileTrue(
-            new SequentialCommandGroup(
-            new IntakePivotCommand(intake, false),
-            new ParallelCommandGroup(
-                new AutoCollectCommand(drivetrain, driveRR),
-                new RunCommand(() -> intake.runIntake(true, 0.8))
-            ).until(() -> intake.intakeHasCoral()),
-            new IntakePivotCommand(intake, true)
-            )
-        );
+        // joystick.x().whileTrue(
+        //     new SequentialCommandGroup(
+        //     new IntakePivotCommand(intake, false),
+        //     new ParallelCommandGroup(
+        //         new AutoCollectCommand(drivetrain, driveRR),
+        //         new RunCommand(() -> intake.runIntake(true, 0.8))
+        //     ).until(() -> intake.intakeHasCoral()),
+        //     new IntakePivotCommand(intake, true)
+        //     )
+        // );
         joystick.rightBumper().whileTrue(
             drivetrain.applyRequest(() ->
                 driveRR.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
