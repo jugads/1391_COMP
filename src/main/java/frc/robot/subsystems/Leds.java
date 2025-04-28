@@ -81,6 +81,9 @@ public class Leds extends SubsystemBase {
     if (drivetrain.isAligning()) {
       flash(Color.kGold);
     }
+    else if (drivetrain.getTVIntakeLL()) {
+      flash(Color.kGreenYellow);
+    }
     else if (autoCollecting) {
       flash(Color.kPurple);
     }
@@ -122,6 +125,9 @@ public class Leds extends SubsystemBase {
   }
   public void setDef(boolean set) {
     def=set;
+  }
+  public void setAutoCollecting(boolean set) {
+    def=autoCollecting;
   }
   // Sets the color of the bottom half of the LED strip
   public void setBottom(Color color) {
