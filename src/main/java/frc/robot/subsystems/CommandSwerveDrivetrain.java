@@ -17,6 +17,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -65,7 +66,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean needsVisionReset = false;
     private boolean isSkidding = false;
     private boolean isSpinning = false;
-    private boolean shouldUpdateWithVision = false;
+    private boolean doRejectUpdate = false;
     private boolean autoScore = false;
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
@@ -250,37 +251,35 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     
         @Override
         public void periodic() {
-          // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
-          // SmartDashboard.putNumber("Distance sensed", getSensorVal());
-            pose.update(getPigeon2().getRotation2d(), getModulePositions());
-            checkForSkid();
-            // if (!DriverStation.isAutonomous()) {
-            if (getKinematics().toChassisSpeeds().omegaRadiansPerSecond > 2) {
-              shouldUpdateWithVision = false;
-            }
-            else {
-              shouldUpdateWithVision = true;
-            }
-            if (isSkidding) {
-              needsVisionReset = true;
-            }
-            else {
-              needsVisionReset = false;
-            }
-            if (shouldUpdateWithVision && needsVisionReset && getTVLeft()) {
-              resetPose(new Pose2d(getLeftLLPose().getX(), getLeftLLPose().getY(), getPigeon2().getRotation2d()));
-            }
-            else if (shouldUpdateWithVision && getTVLeft()) {
-              pose.addVisionMeasurement(getLeftLLPose(), Utils.getCurrentTimeSeconds() - m_limelightLeft.getEntry("tl").getDouble(0.)/1000);
-            }
-            LimelightHelpers.SetRobotOrientation("limelight-fleft", pose.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+          pose.update(getPigeon2().getRotation2d(), getModulePositions());
+          // // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
+          // // SmartDashboard.putNumber("Distance sensed", getSensorVal());
+          LimelightHelpers.SetRobotOrientation("limelight-fleft", pose.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+          LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft");
+          // if our angular velocity is greater than 360 degrees per second, ignore vision updates
+          if(Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 360)
+          {
+            doRejectUpdate = true;
+          }
+          if(mt2.tagCount == 0)
+          {
+            doRejectUpdate = true;
+          }
+          if(!doRejectUpdate)
+          {
+            pose.addVisionMeasurement(
+                new Pose2d(mt2.pose.getX(), mt2.pose.getY(), new Rotation2d(getPigeon2().getYaw().getValueAsDouble())),
+                mt2.timestampSeconds
+            );
+          }
             var array = new double[] {
                 getPose().getX(),
                 getPose().getY(),
                 getPose().getRotation().getRadians(),
             };
             SmartDashboard.putNumberArray("MyPose", array);
-            // SmartDashboard.putNumber("Rot", getPose().getRotation().getDegrees());
+            SmartDashboard.putNumberArray("Left LL", new double[]{getLeftLLPose().getX(), getLeftLLPose().getY(), getLeftLLPose().getRotation().getDegrees()});
+          //   // SmartDashboard.putNumber("Rot", getPose().getRotation().getDegrees());
             /*
              * Periodically try to apply the operator perspective.
              * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.

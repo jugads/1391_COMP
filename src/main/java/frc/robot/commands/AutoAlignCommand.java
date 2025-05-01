@@ -38,11 +38,11 @@ public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
   PIDController distanceController = new PIDController(0.03695, 0., 0.0013);
-  PIDController distanceControllerRight = new PIDController(0.0362, 0., 0.0013);
+  PIDController distanceControllerRight = new PIDController(0.025, 0.0004, 0.);
   // Y control: Lower gains for lateral movement
   PIDController lateralController = new PIDController(0.01, 0., 0.0003);
   PIDController lateralControllerAuto = new PIDController(0.01, 0., 0.0003);
-  PIDController thetaController = new PIDController(0.25, 0., 0.0);
+  PIDController thetaController = new PIDController(0.1, 0., 0.0);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new ApplyRobotSpeeds();
@@ -87,7 +87,7 @@ public class AutoAlignCommand extends Command {
       thetaController.setSetpoint(0.);
     }
     else if (getRot() < 90 && getRot() > 30) {
-      thetaController.setSetpoint(60.);
+      thetaController.setSetpoint(55.);
     }
     else if (getRot() < 150 && getRot() > 90) {
       thetaController.setSetpoint(120.);
@@ -102,9 +102,8 @@ public class AutoAlignCommand extends Command {
       thetaController.setSetpoint(-60);
     }
     distanceController.setSetpoint((aligningL4 ? 3.9 : 1.25));
-    distanceControllerRight.setSetpoint((aligningL4 ? -0.95 : -2.15));
-    lateralControllerAuto.setSetpoint(aligningL4 ? (aligningLeft ? 1.5 : 0.5) : (aligningLeft ? -1.25 : -1));
-    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.15 : 0.) : (aligningLeft ? -1.25 : -0.25));
+    distanceControllerRight.setSetpoint((aligningL4 ? -0.95 : -0.15));
+    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.15 : -0.25) : (aligningLeft ? -1.25 : -0.5));
     // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
@@ -194,7 +193,12 @@ public class AutoAlignCommand extends Command {
     // Command completes when either:
     // - X position is within tolerance
     // - Target visibility is lost for the selected camera
-    return (aligningLeft ? !drivetrain.getTVRight() : !drivetrain.getTVLeft()) || (Math.abs(distanceController.getSetpoint() - getMeasurement()) < (DriverStation.isAutonomous() ? 2. : 1.) || distanceController.atSetpoint() || (Math.abs(distanceControllerRight.getSetpoint() - getMeasurement()) < (DriverStation.isAutonomous() ? 2. : 1.)) || distanceControllerRight.atSetpoint());
+    return (
+      aligningLeft 
+      ? (!drivetrain.getTVRight() ||
+      (Math.abs(distanceController.getSetpoint() - getMeasurement()) < (DriverStation.isAutonomous() ? 2. : 1.)))
+      : (!drivetrain.getTVLeft()
+      || (Math.abs(distanceControllerRight.getSetpoint() - getMeasurement()) < (DriverStation.isAutonomous() ? 2. : 1.))) || distanceControllerRight.atSetpoint());
   }
   public double getMeasurement() {
     return aligningLeft ? drivetrain.getTYRight() : drivetrain.getTYLeft();
