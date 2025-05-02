@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.AnalogInput;
@@ -254,24 +255,21 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
           pose.update(getPigeon2().getRotation2d(), getModulePositions());
           // // SmartDashboard.putBoolean("Range valid", distanceSensor.isRangeValid());
           // // SmartDashboard.putNumber("Distance sensed", getSensorVal());
-          LimelightHelpers.SetRobotOrientation("limelight-fleft", pose.getEstimatedPosition().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-          LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft");
+          
+          if (getTVLeft()) {
+            var driveState = this.getState();
+            double headingDeg = driveState.Pose.getRotation().getDegrees();
+            double omegaRps = Units.radiansToRotations(driveState.Speeds.omegaRadiansPerSecond);
+      
+            LimelightHelpers.SetRobotOrientation("limelight-fleft", headingDeg, 0, 0, 0, 0, 0);
+            var llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft");
+            if (llMeasurement != null && llMeasurement.tagCount > 0 && Math.abs(omegaRps) < 2.0) {
+              this.addVisionMeasurement(llMeasurement.pose, llMeasurement.timestampSeconds);
+            }
+          }
           // if our angular velocity is greater than 360 degrees per second, ignore vision updates
-          if(Math.abs(getPigeon2().getAngularVelocityZWorld().getValueAsDouble()) > 360)
-          {
-            doRejectUpdate = true;
-          }
-          if(mt2.tagCount == 0)
-          {
-            doRejectUpdate = true;
-          }
-          if(!doRejectUpdate)
-          {
-            pose.addVisionMeasurement(
-                new Pose2d(mt2.pose.getX(), mt2.pose.getY(), new Rotation2d(getPigeon2().getYaw().getValueAsDouble())),
-                mt2.timestampSeconds
-            );
-          }
+          
+          
             var array = new double[] {
                 getPose().getX(),
                 getPose().getY(),
