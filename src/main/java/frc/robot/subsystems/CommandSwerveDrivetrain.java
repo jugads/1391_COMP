@@ -2,6 +2,9 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -16,6 +19,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -44,6 +48,7 @@ import frc.robot.LimelightHelpers;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import static frc.robot.LimelightHelpers.*;
 import static frc.robot.Constants.AlignmentPoses.*;
+import static frc.robot.Constants.ReefPoses.K_CONSTRAINTS_Barging;
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
@@ -264,7 +269,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             LimelightHelpers.SetRobotOrientation("limelight-fleft", headingDeg, 0, 0, 0, 0, 0);
             var llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft");
             if (llMeasurement != null && llMeasurement.tagCount > 0 && Math.abs(omegaRps) < 2.0) {
-              this.addVisionMeasurement(llMeasurement.pose, llMeasurement.timestampSeconds);
+              pose.addVisionMeasurement(llMeasurement.pose, llMeasurement.timestampSeconds);
             }
           }
           // if our angular velocity is greater than 360 degrees per second, ignore vision updates
@@ -276,7 +281,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 getPose().getRotation().getRadians(),
             };
             SmartDashboard.putNumberArray("MyPose", array);
-            SmartDashboard.putNumberArray("Left LL", new double[]{getLeftLLPose().getX(), getLeftLLPose().getY(), getLeftLLPose().getRotation().getDegrees()});
           //   // SmartDashboard.putNumber("Rot", getPose().getRotation().getDegrees());
             /*
              * Periodically try to apply the operator perspective.
@@ -325,13 +329,86 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
           public void resetPose(Pose2d rpose) {
             pose.resetPose(rpose);
           }
-          public Command setAlignmentPose() {
-            if (getTVLeft()) {
-            return new InstantCommand(() -> pose.resetPose(new Pose2d(getLeftLLPose().getX(), getLeftLLPose().getY(), getPigeon2().getRotation2d())));
+          public Command driveToPose(Supplier<Pose2d> pose) {
+            return AutoBuilder.pathfindToPose(pose.get(), K_CONSTRAINTS_Barging);
+          }
+          public Pose2d getNearestReefPoseLeft() {
+            var currentX = getPose().getX();
+            var currentY = getPose().getY();
+            Pose2d[][] allPoses = new Pose2d[][] {
+              kAliBLUE0_1,
+              kAliBLUE2_3, 
+              kAliBLUE4_5,
+              kAliBLUE6_7,
+              kAliBLUE8_9,
+              kAliBLUE10_11,
+              kAliRED0_1,
+              kAliRED2_3,
+              kAliRED4_5,
+              kAliRED6_7,
+              kAliRED8_9,
+              kAliRED10_11
+            };
+            ArrayList<Double> distanceArray = new ArrayList<Double>();
+            for (int i=0; i<allPoses.length; i++) {
+              distanceArray.add(
+                Math.sqrt(
+                  Math.pow((currentX - allPoses[i][0].getX()),2)
+                  +
+                  Math.pow((currentY - allPoses[i][0].getY()),2)
+                )
+              );
             }
-            else {
-              return Commands.none();
+            ArrayList<Double> sortedArray = new ArrayList<>(distanceArray);
+            Collections.sort(sortedArray);
+            double index = 0;
+            for (int i=0; i<sortedArray.size(); i++) {
+              if (distanceArray.get(i) == sortedArray.get(0)) {
+                index = i;
+              }
             }
+
+            Pose2d closest = allPoses[(int)index][0];
+            return closest;
+          }
+          public Pose2d getNearestReefPoseRight() {
+            var currentX = getPose().getX();
+            var currentY = getPose().getY();
+            Pose2d[][] allPoses = new Pose2d[][] {
+              kAliBLUE0_1,
+              kAliBLUE2_3, 
+              kAliBLUE4_5,
+              kAliBLUE6_7,
+              kAliBLUE8_9,
+              kAliBLUE10_11,
+              kAliRED0_1,
+              kAliRED2_3,
+              kAliRED4_5,
+              kAliRED6_7,
+              kAliRED8_9,
+              kAliRED10_11
+            };
+            ArrayList<Double> distanceArray = new ArrayList<Double>();
+            for (int i=0; i<allPoses.length; i++) {
+              distanceArray.add(
+                Math.sqrt(
+                  Math.pow((currentX - allPoses[i][0].getX()),2)
+                  +
+                  Math.pow((currentY - allPoses[i][0].getY()),2)
+                )
+              );
+            }
+            ArrayList<Double> sortedArray = new ArrayList<>(distanceArray);
+            Collections.sort(sortedArray);
+            double index = 0;
+            for (int i=0; i<sortedArray.size(); i++) {
+              if (distanceArray.get(i) == sortedArray.get(0)) {
+                index = i;
+              }
+            }
+
+            Pose2d closest = allPoses[(int)index][1];
+            return closest;
           }
           public void resetGyro(double angle) {
             getPigeon2().setYaw(angle);
@@ -412,7 +489,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double[] result = {array[0], array[1], array[5]};
         Pose2d pose = new Pose2d(result[0], result[1], new Rotation2d(result[2]));
         // return pose;
-        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft").pose;
+        return pose;
       }
       public double getTXRight() {
         return m_limelightRight.getEntry("tx").getDouble(0.);
@@ -423,7 +500,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       private void configureAutoBuilder() {
         try {
             var config = RobotConfig.fromGUISettings();
-            AutoBuilder.configure(()-> getPose(), 
+            AutoBuilder.configure(() -> getPose(), 
                                 this::resetPose,
                                 () -> getState().Speeds, 
                                 (speeds, feedforwards) -> setControl(
@@ -432,7 +509,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                         .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
                                 ), 
                                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                                new PIDConstants(15., 0.0, 0.0), // Translation PID constants
+                                new PIDConstants(1.75, 0.0, 0.0), // Translation PID constants
                                 new PIDConstants(4., 0.0, 0.0)
             ), 
                                 config, 
@@ -492,7 +569,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public double getTYIntakeLL() {
         return getTYLeft();
     }
-
     public double getTXIntakeLL() {
         return getTXLeft();
     }

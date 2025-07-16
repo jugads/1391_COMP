@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRC Dashboard</title>
+</head>
+<body>
+  <h1>FRC Dashboard</h1>
+
+  <form id="dashboard-form">
+    <label for="l4-scored">L4 Scored:</label>
+    <input type="number" id="l4-scored" name="l4-scored" value="0">
+
+    <label for="l3-scored">L3 Scored:</label>
+    <input type="number" id="l3-scored" name="l3-scored" value="0">
+
+    <label for="l2-scored">L2 Scored:</label>
+    <input type="number" id="l2-scored" name="l2-scored" value="0">
+
+    <label for="l1-scored">L1 Scored:</label>
+    <input type="number" id="l1-scored" name="l1-scored" value="0">
+
+    <label for="strategy">Strategy:</label>
+    <select id="strategy" name="strategy">
+      <option value="qual">Qualification</option>
+      <option value="playoff">Playoff</option>
+    </select>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script src="main.js"></script>
+</body>
+</html>

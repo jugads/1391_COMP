@@ -45,12 +45,12 @@ public class Leds extends SubsystemBase {
   @Override
   public void periodic() {
     if (DriverStation.isDisabled()) {
-    /*LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
-    LEDPattern pattern = base.scrollAtRelativeSpeed(Percent.per(Second).of(99));
+    LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, drivetrain.getTVLeft() ? Color.kGreen : Color.kPurple);
+    LEDPattern pattern = base.scrollAtRelativeSpeed(Percent.per(Second).of(99.999999));
 
     pattern.applyTo(buffer);
-    leds.setData(buffer);*/
-    setAll(drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
+    leds.setData(buffer);
+    // setAll(drivetrain.getTVLeft() ? Color.kGreen : Color.kRed);
     /*  double time = timer.get();
     int length = buffer.getLength();
     /*double time = timer.get();
@@ -185,6 +185,13 @@ public class Leds extends SubsystemBase {
     } else {
       setAll(color2);
     }
+  }
+  public void cycle(Color color, double speed) {
+    LEDPattern base = LEDPattern.gradient(GradientType.kDiscontinuous, Color.kBlack, color);
+    LEDPattern pattern = base.scrollAtRelativeSpeed(Percent.per(Second).of(speed));
+
+    pattern.applyTo(buffer);
+    leds.setData(buffer);
   }
    
   

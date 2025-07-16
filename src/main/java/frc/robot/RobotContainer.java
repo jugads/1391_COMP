@@ -11,10 +11,12 @@ import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -45,11 +47,17 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Knuckle;
 import frc.robot.subsystems.Leds;
+import frc.robot.subsystems.Strategy;
 import frc.robot.subsystems.Hopper;
 import static frc.robot.Constants.ElevatorConstants.*;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE4_5;
 import static frc.robot.Constants.ArmConstants.*;
 import static frc.robot.Constants.ClimberConstants.k90DegreesRotations;
 import static frc.robot.Constants.ReefPoses.*;
+import static frc.robot.LimelightHelpers.pose2dToArray;
+
+import java.util.Set;
+
 import static frc.robot.Constants.OperatorConstants.*;
 public class RobotContainer {
     // Drive configuration
@@ -58,7 +66,7 @@ public class RobotContainer {
     private double gyro = 1;
     // Swerve drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed*0.15)
+            .withDeadband(MaxSpeed*0.1)
             .withRotationalDeadband(MaxAngularRate * 0.1)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
@@ -69,7 +77,7 @@ public class RobotContainer {
 
     // private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     // private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
+    private Pose2d closestPose = new Pose2d();
     // Telemetry
     private final Telemetry logger = new Telemetry(MaxSpeed);
     Timer timer = new Timer();
@@ -87,6 +95,7 @@ public class RobotContainer {
     public final Leds leds = new Leds(new AddressableLED(9), new AddressableLEDBuffer(138), arm, knuckle, algaeScorer, drivetrain);
     public final Hopper hopper = new Hopper();
     public final Climber climber = new Climber();
+    public final Strategy strat = new Strategy();
     // public final GroundIntake intake = new GroundIntake();
     public final AutonomousCommand autos = new AutonomousCommand(drivetrain, driveRR, elevator, arm, hopper, knuckle, algaeScorer);
     private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -124,9 +133,9 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive
                 .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-                .withVelocityX(-joystick.getLeftY() * MaxSpeed *gyro)
-                .withVelocityY(-joystick.getLeftX() * MaxSpeed * gyro)
-                .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
+                .withVelocityX(-joystick.getLeftY() * MaxSpeed *gyro*0.2)
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed * gyro*0.2)
+                .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.2)
             )
         );
 
@@ -146,7 +155,7 @@ public class RobotContainer {
     }
 
     private void configureDriverControls() {
-        joystick.a().onTrue(
+        joystick.rightBumper().onTrue(
             new ParallelCommandGroup(
                 new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()),
                 new InstantCommand(() -> arm.setSetpoint(0.25))
@@ -154,24 +163,24 @@ public class RobotContainer {
                 () -> algaeScorer.stopMotor()
         )
         );
-        // joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        // joystick.a().onTrue(new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
         joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score(), knuckle), new RunCommand(() -> knuckle.scoreLowSpeed(), knuckle), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()).andThen(new ConditionalCommand(new InstantCommand(() -> elevator.setSetpoint(kElevL1+0.04)), Commands.none(), () -> arm.getEncoderPosition() < 0.)));
-        // joystick.rightBumper().whileTrue(
-        //     new RunCommand(() -> hopper.runBoth(0.2, 1.), hopper)
-        // );
         joystick.y().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
-        joystick.b().whileTrue(
-            new RunCommand(() -> knuckle.score(), knuckle)
-        );
+        // joystick.b().whileTrue(
+        //     new SequentialCommandGroup(
+        //     Commands.defer(
+        //         () -> AutoBuilder.pathfindToPose(drivetrain.getNearestReefPoseRight(), K_CONSTRAINTS_Barging),
+        //         Set.of() // required subsystem dependencies if any
+        //     ),
+        //     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
+        //     )
+        // );
         // joystick.x().whileTrue(
         //     new SequentialCommandGroup(
-        //     new IntakePivotCommand(intake, false),
-        //     new ParallelCommandGroup(
-        //         new AutoCollectCommand(drivetrain, driveRR),
-        //         new RunCommand(() -> intake.runIntake(true, 0.8))
-        //     ).until(() -> intake.intakeHasCoral()),
-        //     new IntakePivotCommand(intake, true)
+        //     Commands.defer(
+        //         () -> AutoBuilder.pathfindToPose(drivetrain.getNearestReefPoseLeft(), K_CONSTRAINTS_Barging),
+        //         Set.of() // required subsystem dependencies if any
+        //     ),
+        //     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
         //     )
         // );
         joystick.rightBumper().whileTrue(
@@ -180,29 +189,6 @@ public class RobotContainer {
                     .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
-        );
-        joystick.rightTrigger().whileTrue(
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -0.3 : 0.3))
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * (DriverStation.getAlliance().get() == Alliance.Red ? -0.3 : 0.3))
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
-            )
-        );
-        // joystick.leftTrigger().whileTrue(
-        //     new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
-        // //     // new RunCommand(() -> knuckle.setKnuckleMotorHigh())
-        // );
-        joystick.back().whileTrue(
-            // new SequentialCommandGroup(
-            //     new InstantCommand(() -> timer.restart()),
-            //     drivetrain.applyRequest(() -> driveRR.withVelocityX(-0.75)).until(() -> timer.get() > 0.5),
-            //     new ParallelCommandGroup(
-            //         new InstantCommand(() -> elevator.setSetpoint(0.27)),
-            //         new InstantCommand(() -> arm.setSetpoint(0.25))
-            //     ),
-            //     new InstantCommand(() -> timer.stop())
-            // )
-            new InstantCommand(() -> arm.setSetpoint(0.25))
         );
         joystick.povLeft().whileTrue(
             drivetrain.applyRequest(
@@ -239,6 +225,22 @@ public class RobotContainer {
             .withVelocityY(0) // Drive left with negative X (left)
             .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
         )
+        );
+        joystick.a().whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
+            new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8), algaeScorer).until(() -> algaeScorer.hasAlgae())
+            )
+        );
+        joystick.b().whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.31)),
+                new InstantCommand(() -> arm.setSetpoint(0.165)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
+            )
         );
         joystick.start().whileTrue(new InstantCommand(() -> resetGyro()));
     }
@@ -385,7 +387,10 @@ public class RobotContainer {
             )
         );
         manual.leftTrigger().whileTrue(
-            new RunCommand(() -> climber.runClimber(1.), climber).until(() -> climber.getClimberPosition() > 230)
+            new ConditionalCommand(
+                new TransferCommand(elevator, arm, knuckle, hopper), 
+                Commands.none(), () -> !knuckle.hasCoral()
+            )    
         );
         manual.back().whileTrue(
             new RunCommand(() -> climber.runClimber(-0.1), climber)
@@ -489,5 +494,15 @@ public class RobotContainer {
     }
     public void resetGyro() {
     gyro *= -1;
+    }
+    public void setPoseTarg() {
+        if (closestPose == null) {
+            System.out.println("WARNING: closestPose is null!");
+        } else {
+            System.out.println("Target set to: " + closestPose);
+        }
+    }
+    public void dashboardUpdates() {
+        SmartDashboard.putNumberArray("Pose target", pose2dToArray(closestPose));
     }
 }

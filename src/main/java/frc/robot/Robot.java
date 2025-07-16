@@ -22,7 +22,9 @@ public class Robot extends TimedRobot {
   public Robot() {
     m_robotContainer = new RobotContainer();
     System.out.println("robot init");
-    m_robotContainer.setGyro();
+    if (DriverStation.getAlliance().isPresent()) {
+      m_robotContainer.setGyro();
+    }
     FollowPathCommand.warmupCommand().schedule();
     UsbCamera camera = CameraServer.startAutomaticCapture();
     camera.setBrightness(60);
@@ -74,6 +76,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
+    m_robotContainer.dashboardUpdates();
   }
 
   @Override

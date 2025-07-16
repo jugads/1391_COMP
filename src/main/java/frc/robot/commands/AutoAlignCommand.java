@@ -37,12 +37,12 @@ import frc.robot.subsystems.Elevator;
 public class AutoAlignCommand extends Command {
   /** Creates a new AutoAlignCommand */
   // X control: Higher P gain for distance, small D for stability
-  PIDController distanceController = new PIDController(0.03695, 0., 0.0013);
-  PIDController distanceControllerRight = new PIDController(0.025, 0.0004, 0.);
+  PIDController distanceController = new PIDController(0.025, 0.00015, 0.0);
+  PIDController distanceControllerRight = new PIDController(0.025, 0.000325, 0.);
   // Y control: Lower gains for lateral movement
-  PIDController lateralController = new PIDController(0.01, 0., 0.0003);
+  PIDController lateralController = new PIDController(0.01, 0.0002, 0.00035);
   PIDController lateralControllerAuto = new PIDController(0.01, 0., 0.0003);
-  PIDController thetaController = new PIDController(0.1, 0., 0.0);
+  PIDController thetaController = new PIDController(0.1, 0.03, 0.0);
   CommandSwerveDrivetrain drivetrain;
   SwerveRequest.RobotCentric drive;
   SwerveRequest.ApplyRobotSpeeds driveChassisSpeeds = new ApplyRobotSpeeds();
@@ -87,7 +87,7 @@ public class AutoAlignCommand extends Command {
       thetaController.setSetpoint(0.);
     }
     else if (getRot() < 90 && getRot() > 30) {
-      thetaController.setSetpoint(55.);
+      thetaController.setSetpoint(60.);
     }
     else if (getRot() < 150 && getRot() > 90) {
       thetaController.setSetpoint(120.);
@@ -101,9 +101,9 @@ public class AutoAlignCommand extends Command {
     else {
       thetaController.setSetpoint(-60);
     }
-    distanceController.setSetpoint((aligningL4 ? 3.9 : 1.25));
-    distanceControllerRight.setSetpoint((aligningL4 ? -0.95 : -0.15));
-    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.15 : -0.25) : (aligningLeft ? -1.25 : -0.5));
+    distanceController.setSetpoint((aligningL4 ? 3.75 : 2.));
+    distanceControllerRight.setSetpoint((aligningL4 ? -0.95 : 0.25));
+    lateralController.setSetpoint(aligningL4 ? (aligningLeft ? 1.15 : -2.25) : (aligningLeft ? -1.25 : -1.6));
     // SmartDashboard.putNumber("Rot", getRot());
     // Calculate velocities using PID and vision feedback
     // Negative maxSpeed multiplier inverts direction as needed
