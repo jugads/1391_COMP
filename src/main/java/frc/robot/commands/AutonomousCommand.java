@@ -7,6 +7,8 @@ package frc.robot.commands;
 import static frc.robot.Constants.ReefPoses.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.OperatorConstants.kL4;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE2_3L4;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE4_5L4;
 import static frc.robot.Constants.ArmConstants.*;
 
 import frc.robot.subsystems.AlgaeScorer;
@@ -88,7 +90,7 @@ public class AutonomousCommand extends Command {
 
         new WaitCommand(0.5),
         new InstantCommand(() -> timer.restart()),
-        new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> timer.get() < 4),
+        AutoBuilder.pathfindToPose(kAliBLUE2_3L4[0], K_CONSTRAINTS_Barging).onlyWhile(() -> timer.get() < 4),
         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
 
 
@@ -120,7 +122,7 @@ public class AutonomousCommand extends Command {
 
                     new WaitCommand(0.2),
                     new InstantCommand(() -> timer.restart()),
-                    new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> timer.get() < 4),
+                    AutoBuilder.pathfindToPose(kAliBLUE4_5L4[0], K_CONSTRAINTS_Barging).onlyWhile(() -> timer.get() < 4),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
@@ -159,7 +161,7 @@ public class AutonomousCommand extends Command {
                     ),
                     new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
                     new WaitCommand(0.2),
-                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    AutoBuilder.pathfindToPose(kAliBLUE4_5L4[1], K_CONSTRAINTS_Barging),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())

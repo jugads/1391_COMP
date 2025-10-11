@@ -15,13 +15,19 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -34,6 +40,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.I2C;
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -42,6 +49,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.LimelightHelpers;
@@ -49,6 +57,7 @@ import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import static frc.robot.LimelightHelpers.*;
 import static frc.robot.Constants.AlignmentPoses.*;
 import static frc.robot.Constants.ReefPoses.K_CONSTRAINTS_Barging;
+import static frc.robot.Constants.ReefPoses.K_CONSTRAINTS_Fastest;
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
@@ -66,7 +75,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
     private boolean isAligning = false;
-    NetworkTable m_limelightRight = NetworkTableInstance.getDefault().getTable("limelight-fright");
+    NetworkTable m_limelightRight = NetworkTableInstance.getDefault().getTable("limelight-back");
     NetworkTable m_limelightLeft = NetworkTableInstance.getDefault().getTable("limelight-fleft");
     private final SwerveRequest.ApplyRobotSpeeds m_ApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
     private boolean needsVisionReset = false;
@@ -74,6 +83,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean isSpinning = false;
     private boolean doRejectUpdate = false;
     private boolean autoScore = false;
+    private final PIDController m_pathXController = new PIDController(10, 0, 0);
+    private final PIDController m_pathYController = new PIDController(10, 0, 0);
+    private final PIDController m_pathThetaController = new PIDController(7, 0, 0);
+    private final SwerveRequest.ApplyFieldSpeeds m_pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldSpeeds();
     /* Swerve requests to apply during SysId characterization */
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
@@ -263,7 +276,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
           
           if (getTVLeft()) {
             var driveState = this.getState();
-            double headingDeg = driveState.Pose.getRotation().getDegrees();
+            double headingDeg = getPigeon2().getRotation2d().getDegrees();
             double omegaRps = Units.radiansToRotations(driveState.Speeds.omegaRadiansPerSecond);
       
             LimelightHelpers.SetRobotOrientation("limelight-fleft", headingDeg, 0, 0, 0, 0, 0);
@@ -328,6 +341,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
           }
           public void resetPose(Pose2d rpose) {
             pose.resetPose(rpose);
+          }
+          public void resetPoseBasedOnLL() {
+            var llMeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-fleft");
+            if (llMeasurement != null && llMeasurement.tagCount > 0) {
+              pose.resetPose(llMeasurement.pose);
+            }
           }
           public Command driveToPose(Supplier<Pose2d> pose) {
             return AutoBuilder.pathfindToPose(pose.get(), K_CONSTRAINTS_Barging);
@@ -408,6 +427,47 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             }
 
             Pose2d closest = allPoses[(int)index][1];
+            return closest;
+          }
+
+          public Pose2d getNearestReefPoseL4(boolean left) {
+            var currentX = getPose().getX();
+            var currentY = getPose().getY();
+            Pose2d[][] allPoses;
+            allPoses = new Pose2d[][] {
+              kAliBLUE0_1L4,
+              kAliBLUE2_3L4, 
+              kAliBLUE4_5L4,
+              kAliBLUE6_7L4,
+              kAliBLUE8_9L4,
+              kAliBLUE10_11L4,
+              kAliRED0_1L4,
+              kAliRED2_3L4,
+              kAliRED4_5L4,
+              kAliRED6_7L4,
+              kAliRED8_9L4,
+              kAliRED10_11L4
+            };
+            ArrayList<Double> distanceArray = new ArrayList<Double>();
+            for (int i=0; i<allPoses.length; i++) {
+              distanceArray.add(
+                Math.sqrt(
+                  Math.pow((currentX - allPoses[i][0].getX()),2)
+                  +
+                  Math.pow((currentY - allPoses[i][0].getY()),2)
+                )
+              );
+            }
+            ArrayList<Double> sortedArray = new ArrayList<>(distanceArray);
+            Collections.sort(sortedArray);
+            double index = 0;
+            for (int i=0; i<sortedArray.size(); i++) {
+              if (distanceArray.get(i) == sortedArray.get(0)) {
+                index = i;
+              }
+            }
+
+            Pose2d closest = allPoses[(int)index][left ? 0 : 1];
             return closest;
           }
           public void resetGyro(double angle) {
@@ -575,6 +635,81 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public boolean getTVIntakeLL() {
         return getTVLeft();
     }
+
+    public Command getCoralPosition() {
+      // Get Limelight offsets
+      double tx = getTXRight(); // Horizontal angle offset to target
+      double ty = getTYRight(); // Vertical angle offset to target
+  
+      // Get robot's current estimated pose
+      Pose2d robotPose = pose.getEstimatedPosition();
+      double robotX = robotPose.getX();
+      double robotY = robotPose.getY();
+      double robotHeadingRad = robotPose.getRotation().getRadians();
+  
+      // Camera configuration
+      double cameraHeight = 0.3000375; // in meters
+      double targetHeight = 0.0; // in meters — adjust this as needed
+      double cameraPitchRad = Math.toRadians(15); // camera mounting angle
+  
+      // Convert angles to radians
+      double txRad = Math.toRadians(tx);
+      double tyRad = Math.toRadians(ty);
+  
+      // Total vertical angle from horizontal
+      double totalVerticalAngle = tyRad + cameraPitchRad;
+  
+      // Compute distance from camera to target in horizontal plane
+      double distance = (targetHeight - cameraHeight) / Math.tan(totalVerticalAngle);
+  
+      // Compute absolute angle to target in field frame
+      double absoluteAngleToTarget = robotHeadingRad + txRad;
+  
+      // Compute target's field-relative position
+      double targetX = robotX + distance * Math.cos(absoluteAngleToTarget);
+      double targetY = robotY + distance * Math.sin(absoluteAngleToTarget);
+  
+      // Return target position with robot's rotation (or use Rotation2d(0) if not meaningful)
+      List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
+          pose.getEstimatedPosition(),
+          new Pose2d(
+          targetX,
+          targetY,
+          Rotation2d.fromRadians(absoluteAngleToTarget)
+          )
+        );
+    PathConstraints constraints = K_CONSTRAINTS_Fastest;
+    PathPlannerPath path = new PathPlannerPath(
+        waypoints,
+        constraints,
+        null,// The ideal starting state, this is only relevant for pre-planned paths, so can be null for on-the-fly paths.
+        new GoalEndState(0, Rotation2d.fromRadians(absoluteAngleToTarget))// Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+    );
+    return AutoBuilder.followPath(path);
+  }
+  
+  public void followPath(SwerveSample sample) {
+    m_pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    var pose = getPose();
+
+    var targetSpeeds = sample.getChassisSpeeds();
+    targetSpeeds.vxMetersPerSecond += -m_pathXController.calculate(
+        pose.getX(), sample.x
+    );
+    targetSpeeds.vyMetersPerSecond += -m_pathYController.calculate(
+        pose.getY(), sample.y
+    );
+    targetSpeeds.omegaRadiansPerSecond += m_pathThetaController.calculate(
+        pose.getRotation().getRadians(), sample.heading
+    );
+
+    setControl(
+        m_pathApplyFieldSpeeds.withSpeeds(targetSpeeds)
+            .withWheelForceFeedforwardsX(sample.moduleForcesX())
+            .withWheelForceFeedforwardsY(sample.moduleForcesY())
+    );
+}
     public void checkForSkid() {
       TalonFX[] driveMotors = new TalonFX[4];
       driveMotors[0] = getModules()[0].getDriveMotor();

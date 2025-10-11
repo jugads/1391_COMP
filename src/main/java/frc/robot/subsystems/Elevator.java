@@ -12,6 +12,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -58,6 +60,9 @@ public class Elevator extends SubsystemBase {
   }
   public void setSetpoint(double target) {
     setpoint = MathUtil.clamp(target, 0., 1.);
+  }
+  public Command setSetpointCMD(double target) {
+    return new InstantCommand(() -> setpoint = MathUtil.clamp(target, 0., 1.));
   }
   // Controls elevator movement using dual motors for balanced lifting
   public void runElevatorUp(double speed) {

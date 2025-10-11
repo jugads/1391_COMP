@@ -81,12 +81,6 @@ public class Leds extends SubsystemBase {
     if (drivetrain.isAligning()) {
       flash(Color.kGold);
     }
-    else if (drivetrain.getTVIntakeLL()) {
-      flash(Color.kGreenYellow);
-    }
-    else if (autoCollecting) {
-      flash(Color.kPurple);
-    }
     else if (knuckle.hasCoral()) {
       flash(Color.kWhiteSmoke);
     }

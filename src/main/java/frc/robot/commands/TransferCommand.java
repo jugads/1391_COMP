@@ -68,7 +68,7 @@ public class TransferCommand extends SequentialCommandGroup {
       ),
       new InstantCommand(() -> elevator.setSetpoint(kElevTran + 0.09)).until(() -> elevator.getElevatorPosition() > (kElevTran+0.03)),
       // Final positioning after coral is acquired
-      new InstantCommand(() -> arm.setSetpoint(0.25)),
-      new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.15));
+      new InstantCommand(() -> arm.setSetpoint(kArmL3)),
+      new WaitUntilCommand(() -> arm.getEncoderPosition() > 0.1));
   }
 }

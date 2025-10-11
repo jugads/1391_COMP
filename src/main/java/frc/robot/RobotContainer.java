@@ -11,6 +11,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
@@ -27,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.ArmCommand;
@@ -51,6 +53,8 @@ import frc.robot.subsystems.Strategy;
 import frc.robot.subsystems.Hopper;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.AlignmentPoses.kAliBLUE4_5;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE6_7;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE6_7L4;
 import static frc.robot.Constants.ArmConstants.*;
 import static frc.robot.Constants.ClimberConstants.k90DegreesRotations;
 import static frc.robot.Constants.ReefPoses.*;
@@ -63,11 +67,11 @@ public class RobotContainer {
     // Drive configuration
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private double MaxAngularRate = 3 * Math.PI;
-    private double gyro = 1;
+    private double gyro = 0.25;
     // Swerve drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed*0.1)
-            .withRotationalDeadband(MaxAngularRate * 0.1)
+            .withRotationalDeadband(MaxAngularRate * 0.085)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
     private final SwerveRequest.RobotCentric driveRR = new SwerveRequest.RobotCentric()
@@ -78,12 +82,13 @@ public class RobotContainer {
     // private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     // private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
     private Pose2d closestPose = new Pose2d();
+    int level = 3;
     // Telemetry
     private final Telemetry logger = new Telemetry(MaxSpeed);
     Timer timer = new Timer();
     // Controllers
     private final CommandXboxController joystick = new CommandXboxController(0);
-    private final CommandJoystick operator = new CommandJoystick(1);
+    private final CommandXboxController operator = new CommandXboxController(1);
     private final CommandXboxController manual = new CommandXboxController(2);
 
     // Subsystems
@@ -133,16 +138,16 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive
                 .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
-                .withVelocityX(-joystick.getLeftY() * MaxSpeed *gyro*0.2)
-                .withVelocityY(-joystick.getLeftX() * MaxSpeed * gyro*0.2)
-                .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.2)
+                .withVelocityX(-joystick.getLeftY() * MaxSpeed *gyro)
+                .withVelocityY(-joystick.getLeftX() * MaxSpeed * gyro)
+                .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.25)
             )
         );
 
         // Set default commands for other subsystems
         elevator.setDefaultCommand(new ElevatorCommand(elevator, algaeScorer));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
-        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.08 : 0.), algaeScorer));
+        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.15 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
@@ -155,226 +160,153 @@ public class RobotContainer {
     }
 
     private void configureDriverControls() {
-        joystick.rightBumper().onTrue(
-            new ParallelCommandGroup(
-                new RunCommand(() -> algaeScorer.score(), algaeScorer).until(() -> !algaeScorer.hasAlgae()),
-                new InstantCommand(() -> arm.setSetpoint(0.25))
-            ).andThen(
-                () -> algaeScorer.stopMotor()
-        )
-        );
         joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score(), knuckle), new RunCommand(() -> knuckle.scoreLowSpeed(), knuckle), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()).andThen(new ConditionalCommand(new InstantCommand(() -> elevator.setSetpoint(kElevL1+0.04)), Commands.none(), () -> arm.getEncoderPosition() < 0.)));
-        joystick.y().whileTrue(new RunCommand(() -> knuckle.setKnuckleMotorHigh()));
-        // joystick.b().whileTrue(
-        //     new SequentialCommandGroup(
-        //     Commands.defer(
-        //         () -> AutoBuilder.pathfindToPose(drivetrain.getNearestReefPoseRight(), K_CONSTRAINTS_Barging),
-        //         Set.of() // required subsystem dependencies if any
-        //     ),
-        //     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
-        //     )
-        // );
-        // joystick.x().whileTrue(
-        //     new SequentialCommandGroup(
-        //     Commands.defer(
-        //         () -> AutoBuilder.pathfindToPose(drivetrain.getNearestReefPoseLeft(), K_CONSTRAINTS_Barging),
-        //         Set.of() // required subsystem dependencies if any
-        //     ),
-        //     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
-        //     )
-        // );
-        joystick.rightBumper().whileTrue(
-            drivetrain.applyRequest(() ->
-                driveRR.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
-        );
-        joystick.povLeft().whileTrue(
-            drivetrain.applyRequest(
-            () ->
-            driveRR
-            .withVelocityX(0) // Drive forward with negative Y (forward)
-            .withVelocityY(0.75) // Drive left with negative X (left)
-            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
-        )
-        );
-        joystick.povRight().whileTrue(
-            drivetrain.applyRequest(
-            () ->
-            driveRR
-            .withVelocityX(0) // Drive forward with negative Y (forward)
-            .withVelocityY(-0.75) // Drive left with negative X (left)
-            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
-        )
-        );
-        joystick.povUp().whileTrue(
-            drivetrain.applyRequest(
-            () ->
-            driveRR
-            .withVelocityX(0.75) // Drive forward with negative Y (forward)
-            .withVelocityY(0) // Drive left with negative X (left)
-            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
-        )
-        );
-        joystick.povDown().whileTrue(
-            drivetrain.applyRequest(
-            () ->
-            driveRR
-            .withVelocityX(-0.75) // Drive forward with negative Y (forward)
-            .withVelocityY(0) // Drive left with negative X (left)
-            .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
-        )
-        );
-        joystick.a().whileTrue(
-            new SequentialCommandGroup(
-            new InstantCommand(() -> algaeScorer.resetGripper()),
-            new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8), algaeScorer).until(() -> algaeScorer.hasAlgae())
-            )
-        );
+        joystick.rightBumper().onTrue(new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()));
         joystick.b().whileTrue(
             new SequentialCommandGroup(
-            new InstantCommand(() -> algaeScorer.resetGripper()),
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.31)),
-                new InstantCommand(() -> arm.setSetpoint(0.165)),
-                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            new InstantCommand(() -> drivetrain.resetPoseBasedOnLL()),
+            new ConditionalCommand(
+              new ConditionalCommand(
+                new ParallelCommandGroup(
+                elevator.setSetpointCMD(kElevL3),
+                new InstantCommand(() -> arm.setSetpoint(kArmL3))
+                ), 
+                new ParallelCommandGroup(
+                elevator.setSetpointCMD(kElevL4),
+                new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                ),
+                () -> level == 3
+              ), 
+              new ParallelCommandGroup(
+                elevator.setSetpointCMD(kElevL2),
+                new InstantCommand(() -> arm.setSetpoint(kArmL2))
+            ),  () -> level != 2),
+              new WaitCommand(0.5),
+            Commands.defer(
+                () -> AutoBuilder.pathfindToPose(level == 4 ? drivetrain.getNearestReefPoseRight() : drivetrain.getNearestReefPoseL4(false), K_CONSTRAINTS_Barging),
+                Set.of() // required subsystem dependencies if any
             )
             )
         );
-        joystick.start().whileTrue(new InstantCommand(() -> resetGyro()));
+        joystick.x().whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> drivetrain.resetPoseBasedOnLL()),
+            new ConditionalCommand(
+              new ConditionalCommand(
+                new ParallelCommandGroup(
+                elevator.setSetpointCMD(kElevL3),
+                new InstantCommand(() -> arm.setSetpoint(kArmL3))
+                ), 
+                new ParallelCommandGroup(
+                elevator.setSetpointCMD(kElevL4),
+                new InstantCommand(() -> arm.setSetpoint(kArmL4))
+                ),
+                () -> level == 3
+              ), 
+              new ParallelCommandGroup(
+                elevator.setSetpointCMD(kElevL2),
+                new InstantCommand(() -> arm.setSetpoint(kArmL2))
+            ),  () -> level != 2),
+              new WaitCommand(0.5),
+            Commands.defer(
+                () -> AutoBuilder.pathfindToPose(level == 4 ? drivetrain.getNearestReefPoseLeft() : drivetrain.getNearestReefPoseL4(true), K_CONSTRAINTS_Barging),
+                Set.of() // required subsystem dependencies if any
+            )
+            )
+        );
+        // joystick.rightBumper().whileTrue(
+        //     drivetrain.applyRequest(() ->
+        //         driveRR.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+        //             .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+        //             .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+        //     )
+        // );
+        // joystick.povLeft().whileTrue(
+        //     drivetrain.applyRequest(
+        //     () ->
+        //     driveRR
+        //     .withVelocityX(0) // Drive forward with negative Y (forward)
+        //     .withVelocityY(0.75) // Drive left with negative X (left)
+        //     .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        // )
+        // );
+        // joystick.povRight().whileTrue(
+        //     drivetrain.applyRequest(
+        //     () ->
+        //     driveRR
+        //     .withVelocityX(0) // Drive forward with negative Y (forward)
+        //     .withVelocityY(-0.75) // Drive left with negative X (left)
+        //     .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        // )
+        // );
+        // joystick.povUp().whileTrue(
+        //     drivetrain.applyRequest(
+        //     () ->
+        //     driveRR
+        //     .withVelocityX(0.75) // Drive forward with negative Y (forward)
+        //     .withVelocityY(0) // Drive left with negative X (left)
+        //     .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        // )
+        // );
+        // joystick.povDown().whileTrue(
+        //     drivetrain.applyRequest(
+        //     () ->
+        //     driveRR
+        //     .withVelocityX(-0.75) // Drive forward with negative Y (forward)
+        //     .withVelocityY(0) // Drive left with negative X (left)
+        //     .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
+        // )
+        // );
+        // joystick.leftTrigger().whileTrue(new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm));
+        // joystick.rightTrigger().whileTrue(AutoBuilder.pathfindToPose(kBLUESOURCERIGHT_center, K_CONSTRAINTS_Barging));
+
+        joystick.a().whileTrue(new RunCommand(() -> algaeScorer.runAlgaeScorer(0.7)));
+
+        joystick.start().whileTrue(new InstantCommand(() -> drivetrain.getPigeon2().reset()));
     }
 
     private void configureOperatorControls() {
-        operator.button(kL1).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL1))
-            )
-        );
-        operator.button(kL2).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL2)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL2))
-            )
-        );
-        operator.button(kL3).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL3)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL3))
-            )
-        );
-        operator.button(kL4).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(kElevL4)),
-                new InstantCommand(() -> arm.setSetpoint(kArmL4))
-            )
-        );
-        operator.button(kAutoAlignLeft).whileTrue(
-            Commands.sequence(
-            new AutoAlignCommand(drivetrain, driveRR, true, false, elevator),
-            new ConditionalCommand(
-            Commands.sequence(
-                // new InstantCommand(() -> arm.setSetpoint(0.14)),
-                // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
-                Commands.none()
-            ),
-            Commands.none(),
-            () -> (elevator.getElevatorPosition() > 0.8)
-            ),
-            new ConditionalCommand(
-            // new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),  
-            Commands.none(),
-            Commands.none(),
-             () -> DriverStation.isTeleop()
-             )
-            )
-        );
-        operator.button(kAutoAlignRight).whileTrue(
-            Commands.sequence(
-            new AutoAlignCommand(drivetrain, driveRR, false, false, elevator),
-            new ConditionalCommand(
-            Commands.sequence(
-                // new InstantCommand(() -> arm.setSetpoint(0.14)),
-                // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.01)
-                Commands.none()
-            ),
-            Commands.none(),
-            () -> (elevator.getElevatorPosition() > 0.8)
-            ),
-            new ConditionalCommand(
-            // new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()), 
-            Commands.none(),
-            Commands.none(),
-             () -> DriverStation.isTeleop()
-             )
-            )
-        );
-        operator.axisLessThan(operator.getXChannel(), -0.99).onTrue(new InstantCommand(() -> arm.setSwingFalse()));
-        operator.axisLessThan(operator.getXChannel(), -0.99).onFalse(new InstantCommand(() -> arm.setSwingTrue()));
-        // operator.button(k120degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED2_3));
-        // operator.button(k240degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED10_11));
-        // operator.button(k300degrees).onTrue(drivetrain.setAlignmentTarget(kAliRED8_9));
-        operator.axisLessThan(operator.getYChannel(), -0.99).onTrue(
-            new SequentialCommandGroup(
-            new RunCommand(() -> elevator.runElevatorUp(-0.2), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
-            new InstantCommand(() -> arm.setClimbing()),
-            new InstantCommand(() -> arm.setSetpoint(0.3))
-            )
-        );
-        operator.axisGreaterThan(operator.getXChannel(), 0.99).whileTrue(
-            new SequentialCommandGroup(
-            new InstantCommand(() -> algaeScorer.resetGripper()),
-            new AutomatedAlgaeCommand(algaeScorer, drivetrain, driveRR, elevator, arm)
-            )
-        );
-        operator.axisGreaterThan(operator.getYChannel(), 0.99).whileTrue(
-            new ParallelCommandGroup(
-            new RunCommand(() -> hopper.runBoth(-0.51, -1), hopper),
-            new RunCommand(() -> knuckle.runMotor(-1))
-            )
-        );
-        //Algae L2
-        operator.button(
-            kAL2
-        ).whileTrue(
-            new SequentialCommandGroup(
-            new InstantCommand(() -> algaeScorer.resetGripper()),
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.31)),
-                new InstantCommand(() -> arm.setSetpoint(0.165)),
-                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
-            )
-            )
-        );
-        //Algae l3
-        operator.button(
-            kAL3
-        ).whileTrue(
-            new SequentialCommandGroup(
-            new InstantCommand(() -> algaeScorer.resetGripper()),
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.57)),
-                new InstantCommand(() -> arm.setSetpoint(0.19)),
-                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
-            )
-            )
-        );
-        operator.button(kT).whileTrue(
-            new ConditionalCommand(new TransferCommand(elevator, arm, knuckle, hopper), Commands.none(), () -> !knuckle.hasCoral())
-        );
-        operator.button(kProcs).whileTrue(
-            new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.04)),
-                new InstantCommand(() -> arm.setSetpoint(0.18))
-            )
-        );
-        operator.button(kNET).whileTrue(
-            new SequentialCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
-                new InstantCommand(() -> arm.setSetpoint(0.3517))
-            )
-        );
+        operator.leftTrigger().whileTrue(new TransferCommand(elevator, arm, knuckle, hopper));
+
+        operator.povUp().onTrue(new InstantCommand(() -> level = MathUtil.clamp(level + 1, 2, 4)));
+        operator.povDown().onTrue(new InstantCommand(() -> level = MathUtil.clamp(level - 1, 2, 4)));
+
+        // operator.a().whileTrue(
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(0.04)),
+        //         new InstantCommand(() -> arm.setSetpoint(0.18))
+        //     )
+        // );
+        // operator.y().whileTrue(
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
+        //         new InstantCommand(() -> arm.setSetpoint(0.3517))
+        //     )
+        // );
+
+        // operator.leftBumper().whileTrue(
+        //     new SequentialCommandGroup(
+        //     new InstantCommand(() -> algaeScorer.resetGripper()),
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(0.31)),
+        //         new InstantCommand(() -> arm.setSetpoint(0.165)),
+        //         new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+        //     )
+        //     )
+        // );
+        // //Algae l3
+        // operator.rightBumper().whileTrue(
+        //     new SequentialCommandGroup(
+        //     new InstantCommand(() -> algaeScorer.resetGripper()),
+        //     new ParallelCommandGroup(
+        //         new InstantCommand(() -> elevator.setSetpoint(0.57)),
+        //         new InstantCommand(() -> arm.setSetpoint(0.19)),
+        //         new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+        //     )
+        //     )
+        // );
+
+        // operator.b().whileTrue(new RunCommand(() -> climber.runClimber(0.2), climber));
     } 
 
     private void configureManualControls() {      
@@ -454,8 +386,26 @@ public class RobotContainer {
             .withRotationalRate(0.) // Drive counterclockwise with negative X (left)
         )
         );
-        manual.start().whileTrue(
+        operator.start().whileTrue(
             new InstantCommand(() -> knuckle.setHasCoral())
+        );
+        operator.y().onTrue(
+            new ParallelCommandGroup(
+            elevator.setSetpointCMD(kElevL4),
+            new InstantCommand(() -> arm.setSetpoint(kArmL4))
+            )
+        );
+        operator.a().onTrue(
+            new ParallelCommandGroup(
+            elevator.setSetpointCMD(kElevL3),
+            new InstantCommand(() -> arm.setSetpoint(kArmL3))
+            )
+        );
+        operator.b().onTrue(
+            new ParallelCommandGroup(
+            elevator.setSetpointCMD(kElevL2),
+            new InstantCommand(() -> arm.setSetpoint(kArmL2))
+            )
         );
         // maybe put arm and elevator on sticks?
         // manual.rightBumper().whileTrue(
@@ -480,7 +430,6 @@ public class RobotContainer {
         elevator.setSetpoint(elevator.getElevatorPosition());
     }
     public void inputs() {
-        System.out.println(operator.getX());
     }
     public void setCoral() {
         knuckle.setHasCoral();
@@ -503,6 +452,6 @@ public class RobotContainer {
         }
     }
     public void dashboardUpdates() {
-        SmartDashboard.putNumberArray("Pose target", pose2dToArray(closestPose));
+        SmartDashboard.putNumber("Current Level", level);
     }
 }
