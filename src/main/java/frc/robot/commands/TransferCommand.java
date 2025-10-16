@@ -47,7 +47,7 @@ public class TransferCommand extends SequentialCommandGroup {
       // Move arm to transfer position and wait until it's close enough
       new InstantCommand(() -> arm.setSetpoint(kArmTran)),
       new ParallelRaceGroup(
-      new WaitUntilCommand(() -> arm.getEncoderPosition() < -0.21),
+      new WaitUntilCommand(() -> arm.getEncoderPosition() < -0.205),
       new ConditionalCommand(
         new RunCommand(() -> hopper.runBeltMotor(0.3)), Commands.none(), () -> DriverStation.isTeleop()
       )

@@ -55,7 +55,7 @@ public class Arm extends SubsystemBase {
   }
 
   public double getEncoderPosition() {
-    return -(encoder.get()-0.5200);
+    return -(encoder.get()-0.5201);
   }
   // Checks if arm is at the transfer position (0 degrees)
   public boolean atTransferAngle() {

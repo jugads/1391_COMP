@@ -62,9 +62,10 @@ public class ArmCommand extends Command {
     var pidSpeed = controller.calculate(arm.getEncoderPosition(), armSetpoint);
     if (arm.getEncoderPosition() > -0.25 && arm.getEncoderPosition() < 0.4) {
     arm.runMotor((ff.calculate(armSetpoint, pidSpeed))+pidSpeed);
-    }
+    // arm.runMotor(0.0);
+  }
     else {
-      arm.runMotor(0.);
+      arm.runMotor(0.0);
     }
     // arm.runMotor(0.);
   }

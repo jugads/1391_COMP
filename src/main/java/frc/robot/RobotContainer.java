@@ -67,7 +67,7 @@ public class RobotContainer {
     // Drive configuration
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private double MaxAngularRate = 3 * Math.PI;
-    private double gyro = 0.25;
+    private double gyro = 1.;
     // Swerve drive requests
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed*0.1)
@@ -140,7 +140,7 @@ public class RobotContainer {
                 .withForwardPerspective(ForwardPerspectiveValue.OperatorPerspective)
                 .withVelocityX(-joystick.getLeftY() * MaxSpeed *gyro)
                 .withVelocityY(-joystick.getLeftX() * MaxSpeed * gyro)
-                .withRotationalRate(-joystick.getRightX() * MaxAngularRate * 0.25)
+                .withRotationalRate(-joystick.getRightX() * MaxAngularRate)
             )
         );
 
@@ -213,6 +213,9 @@ public class RobotContainer {
                 Set.of() // required subsystem dependencies if any
             )
             )
+        );
+        joystick.leftTrigger().whileTrue(
+            new RunCommand(() -> knuckle.runMotor(0.8))
         );
         // joystick.rightBumper().whileTrue(
         //     drivetrain.applyRequest(() ->
@@ -325,7 +328,10 @@ public class RobotContainer {
             )    
         );
         manual.back().whileTrue(
-            new RunCommand(() -> climber.runClimber(-0.1), climber)
+            new RunCommand(() -> climber.runClimber(0.8), climber)
+        );
+        manual.start().whileTrue(
+            new RunCommand(() -> climber.runClimber(-0.25), climber)
         );
         manual.y().whileTrue(
             new ParallelCommandGroup(
