@@ -7,8 +7,10 @@ package frc.robot.commands;
 import static frc.robot.Constants.ReefPoses.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.OperatorConstants.kL4;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE10_11L4;
 import static frc.robot.Constants.AlignmentPoses.kAliBLUE2_3L4;
 import static frc.robot.Constants.AlignmentPoses.kAliBLUE4_5L4;
+import static frc.robot.Constants.AlignmentPoses.kAliBLUE8_9L4;
 import static frc.robot.Constants.ArmConstants.*;
 
 import frc.robot.subsystems.AlgaeScorer;
@@ -201,7 +203,7 @@ public class AutonomousCommand extends Command {
                         new InstantCommand(() -> arm.setSetpoint(kArmL4))
                     ).until(() -> elevator.getElevatorPosition() > 0.85),
                     new WaitCommand(0.75),
-                    new AutoAlignCommand(drivetrain, driveRR, false, true, elevator),
+                    AutoBuilder.pathfindToPose(kAliBLUE2_3L4[1], K_CONSTRAINTS_Barging),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
@@ -571,7 +573,7 @@ public Command branches10_9_8_7() {
 
         new WaitCommand(0.25),
         new InstantCommand(() -> timer.restart()),
-new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> timer.get() < 4),
+        AutoBuilder.pathfindToPose(kAliBLUE10_11L4[1], K_CONSTRAINTS_Barging),
         new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral()),
 
 
@@ -603,7 +605,7 @@ new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> 
 
                     new WaitCommand(0.2),
                     new InstantCommand(() -> timer.restart()),
-new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> timer.get() < 4),
+                    AutoBuilder.pathfindToPose(kAliBLUE8_9L4[0], K_CONSTRAINTS_Barging),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
@@ -629,7 +631,7 @@ new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> 
         drivetrain.setFollowingPath(),
         new ParallelCommandGroup(
             new TransferCommand(elevator, arm, knuckle, hopper).onlyWhile(() -> timer.get() < 3 && !knuckle.hasCoral()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))),
-            AutoBuilder.pathfindToPose(isRed() ? kRED6_7 : kBLUE6_7, K_CONSTRAINTS_Fastest)
+            AutoBuilder.pathfindToPose(poseArrays[2], K_CONSTRAINTS_Fastest)
         ),
         drivetrain.stopPathFollowState(),
 
@@ -643,7 +645,7 @@ new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> 
                     new WaitUntilCommand(() -> elevator.getElevatorPosition() > 0.9),
                     new WaitCommand(0.2),
                     new InstantCommand(() -> timer.restart()),
-new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> timer.get() < 4),
+                    AutoBuilder.pathfindToPose(kAliBLUE8_9L4[1], K_CONSTRAINTS_Barging),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
@@ -684,7 +686,7 @@ new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> 
                     ).until(() -> elevator.getElevatorPosition() > 0.85),
                     new WaitCommand(0.75),
                     new InstantCommand(() -> timer.restart()),
-new AutoAlignCommand(drivetrain, driveRR, true, true, elevator).onlyWhile(() -> timer.get() < 4),
+                    AutoBuilder.pathfindToPose(kAliBLUE10_11L4[0], K_CONSTRAINTS_Barging),
                     // new InstantCommand(() -> arm.setSetpoint(0.14)),
                     // new WaitUntilCommand(() -> arm.getEncoderPosition() < arm.getSetpoint()+0.02),
                     new RunCommand(() -> knuckle.score(), knuckle).until(() -> !knuckle.hasCoral())
