@@ -273,47 +273,46 @@ public class RobotContainer {
 
         operator.povUp().onTrue(new InstantCommand(() -> level = MathUtil.clamp(level + 1, 2, 4)));
         operator.povDown().onTrue(new InstantCommand(() -> level = MathUtil.clamp(level - 1, 2, 4)));
+        operator.a().whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.04)),
+                new InstantCommand(() -> arm.setSetpoint(0.18))
+            )
+        );
+        operator.y().whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
+                new InstantCommand(() -> arm.setSetpoint(0.3517))
+            )
+        );
 
-        // operator.a().whileTrue(
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(0.04)),
-        //         new InstantCommand(() -> arm.setSetpoint(0.18))
-        //     )
-        // );
-        // operator.y().whileTrue(
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(0.9985)).until(() -> elevator.getElevatorPosition() > 0.95),
-        //         new InstantCommand(() -> arm.setSetpoint(0.3517))
-        //     )
-        // );
-
-        // operator.leftBumper().whileTrue(
-        //     new SequentialCommandGroup(
-        //     new InstantCommand(() -> algaeScorer.resetGripper()),
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(0.31)),
-        //         new InstantCommand(() -> arm.setSetpoint(0.165)),
-        //         new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
-        //     )
-        //     )
-        // );
-        // //Algae l3
-        // operator.rightBumper().whileTrue(
-        //     new SequentialCommandGroup(
-        //     new InstantCommand(() -> algaeScorer.resetGripper()),
-        //     new ParallelCommandGroup(
-        //         new InstantCommand(() -> elevator.setSetpoint(0.57)),
-        //         new InstantCommand(() -> arm.setSetpoint(0.19)),
-        //         new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
-        //     )
-        //     )
-        // );
+        operator.leftBumper().whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.31)),
+                new InstantCommand(() -> arm.setSetpoint(0.165)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
+            )
+        );
+        //Algae l3
+        operator.rightBumper().whileTrue(
+            new SequentialCommandGroup(
+            new InstantCommand(() -> algaeScorer.resetGripper()),
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(0.57)),
+                new InstantCommand(() -> arm.setSetpoint(0.19)),
+                new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
+            )
+            )
+        );
 
         // operator.b().whileTrue(new RunCommand(() -> climber.runClimber(0.2), climber));
     } 
 
     private void configureManualControls() {      
-        manual.rightTrigger().whileTrue(
+        operator.rightTrigger().whileTrue(
             new SequentialCommandGroup(
             new RunCommand(() -> climber.runClimber(1*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations).andThen(() -> climber.runClimber(0.)),
             new RunCommand(() -> elevator.runElevatorUp(-0.3), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
@@ -327,20 +326,20 @@ public class RobotContainer {
                 Commands.none(), () -> !knuckle.hasCoral()
             )    
         );
-        manual.back().whileTrue(
+        operator.back().whileTrue(
             new RunCommand(() -> climber.runClimber(0.8), climber)
         );
         manual.start().whileTrue(
             new RunCommand(() -> climber.runClimber(-0.25), climber)
         );
-        manual.y().whileTrue(
+        manual.povLeft().whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.03)),
                 new InstantCommand(() -> arm.setSetpoint(0.075)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(1.))
             )
         ); 
-        manual.a().whileTrue(
+        manual.povRight().whileTrue(
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.1)),
                 new InstantCommand(() -> arm.setSetpoint(0.15)),
@@ -395,13 +394,13 @@ public class RobotContainer {
         operator.start().whileTrue(
             new InstantCommand(() -> knuckle.setHasCoral())
         );
-        operator.y().onTrue(
+        operator.povLeft().onTrue(
             new ParallelCommandGroup(
             elevator.setSetpointCMD(kElevL4),
             new InstantCommand(() -> arm.setSetpoint(kArmL4))
             )
         );
-        operator.a().onTrue(
+        operator.povRight().onTrue(
             new ParallelCommandGroup(
             elevator.setSetpointCMD(kElevL3),
             new InstantCommand(() -> arm.setSetpoint(kArmL3))
