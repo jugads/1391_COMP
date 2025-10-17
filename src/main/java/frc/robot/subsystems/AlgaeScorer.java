@@ -29,7 +29,13 @@ public class AlgaeScorer extends SubsystemBase {
   // Continuously updates SmartDashboard with algae detection status
   @Override
   public void periodic() {
-    
+    if (threshold()) {
+      algaeCount ++;
+    }
+    if (scoreCount > 5) {
+      algaeCount = 0;
+      scoreCount = 0;
+    }
     SmartDashboard.putBoolean("Has Algae", hasAlgae());
     SmartDashboard.putBoolean("Distance sensor is detected?",sensor.getIsDetected().getValue().booleanValue());
     // This method will be called once per scheduler run
@@ -46,7 +52,7 @@ public class AlgaeScorer extends SubsystemBase {
   }
   public void score() {
     motor.set(-1);
-    
+    scoreCount++;
   }
   // Retrieves the current draw from the motor for algae detection
   public double getAlgaeScorerCurrent() {
@@ -59,8 +65,10 @@ public class AlgaeScorer extends SubsystemBase {
   // Determines if algae is present based on motor current threshold
   public boolean threshold() {
     return getAlgaeScorerCurrent() > 50;
+    // return algaeCount > 10;
   }
   public boolean hasAlgae() {
     return sensor.getIsDetected().getValue().booleanValue();
+    // return algaeCount > 10;
   }
 }

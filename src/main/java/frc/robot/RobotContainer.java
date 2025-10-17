@@ -147,7 +147,7 @@ public class RobotContainer {
         // Set default commands for other subsystems
         elevator.setDefaultCommand(new ElevatorCommand(elevator, algaeScorer));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
-        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.15 : 0.), algaeScorer));
+        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.12 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
@@ -161,7 +161,7 @@ public class RobotContainer {
 
     private void configureDriverControls() {
         joystick.leftBumper().onTrue(new ConditionalCommand(new RunCommand(() -> knuckle.score(), knuckle), new RunCommand(() -> knuckle.scoreLowSpeed(), knuckle), () -> !(arm.getEncoderPosition() < 0)).until(() -> !knuckle.hasCoral()).andThen(new ConditionalCommand(new InstantCommand(() -> elevator.setSetpoint(kElevL1+0.04)), Commands.none(), () -> arm.getEncoderPosition() < 0.)));
-        joystick.rightBumper().onTrue(new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()));
+        joystick.rightBumper().onTrue(new RunCommand(() -> algaeScorer.score()).until(() -> !algaeScorer.hasAlgae()).andThen(new InstantCommand(() -> arm.setSetpoint(0.25))));
         joystick.b().whileTrue(
             new SequentialCommandGroup(
             new InstantCommand(() -> drivetrain.resetPoseBasedOnLL()),
@@ -264,7 +264,12 @@ public class RobotContainer {
         // joystick.rightTrigger().whileTrue(AutoBuilder.pathfindToPose(kBLUESOURCERIGHT_center, K_CONSTRAINTS_Barging));
 
         joystick.a().whileTrue(new RunCommand(() -> algaeScorer.runAlgaeScorer(0.7)));
-
+        joystick.y().whileTrue(
+            new ParallelCommandGroup(
+                new InstantCommand(() -> elevator.setSetpoint(kElevL1)),
+                new InstantCommand(() -> arm.setSetpoint(kArmL1))
+            )
+        );
         joystick.start().whileTrue(new InstantCommand(() -> drivetrain.getPigeon2().reset()));
     }
 
@@ -290,7 +295,7 @@ public class RobotContainer {
             new SequentialCommandGroup(
             new InstantCommand(() -> algaeScorer.resetGripper()),
             new ParallelCommandGroup(
-                new InstantCommand(() -> elevator.setSetpoint(0.31)),
+                new InstantCommand(() -> elevator.setSetpoint(0.3)),
                 new InstantCommand(() -> arm.setSetpoint(0.165)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
@@ -302,7 +307,7 @@ public class RobotContainer {
             new InstantCommand(() -> algaeScorer.resetGripper()),
             new ParallelCommandGroup(
                 new InstantCommand(() -> elevator.setSetpoint(0.57)),
-                new InstantCommand(() -> arm.setSetpoint(0.19)),
+                new InstantCommand(() -> arm.setSetpoint(0.18)),
                 new RunCommand(() -> algaeScorer.runAlgaeScorer(0.8))
             )
             )
