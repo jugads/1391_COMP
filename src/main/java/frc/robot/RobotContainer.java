@@ -147,7 +147,7 @@ public class RobotContainer {
         // Set default commands for other subsystems
         elevator.setDefaultCommand(new ElevatorCommand(elevator, algaeScorer));
         knuckle.setDefaultCommand(new KnuckleCommand(knuckle));
-        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.12 : 0.), algaeScorer));
+        algaeScorer.setDefaultCommand(new RunCommand(() -> algaeScorer.runAlgaeScorer(algaeScorer.hasAlgae() ? 0.15 : 0.), algaeScorer));
         arm.setDefaultCommand(new ArmCommand(arm, elevator));
         hopper.setDefaultCommand(new RunCommand(() -> hopper.runBoth(0, 0), hopper));
         climber.setDefaultCommand(new InstantCommand(() -> climber.runClimber(0.), climber));
@@ -319,7 +319,7 @@ public class RobotContainer {
     private void configureManualControls() {      
         operator.rightTrigger().whileTrue(
             new SequentialCommandGroup(
-            new RunCommand(() -> climber.runClimber(1*manual.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations).andThen(() -> climber.runClimber(0.)),
+            new RunCommand(() -> climber.runClimber(1*operator.getRightTriggerAxis()), climber).until(() -> climber.getClimberPosition() > k90DegreesRotations).andThen(() -> climber.runClimber(0.)),
             new RunCommand(() -> elevator.runElevatorUp(-0.3), elevator).until(() -> elevator.getElevatorDown()).andThen(new InstantCommand(() -> elevator.setSetpoint(0.))),
             new InstantCommand(() -> arm.setClimbing()),
             new InstantCommand(() -> arm.setSetpoint(0.25))
@@ -416,6 +416,9 @@ public class RobotContainer {
             elevator.setSetpointCMD(kElevL2),
             new InstantCommand(() -> arm.setSetpoint(kArmL2))
             )
+        );
+        operator.x().whileTrue(
+            new RunCommand(() -> hopper.runBeltMotor(-1.0))
         );
         // maybe put arm and elevator on sticks?
         // manual.rightBumper().whileTrue(
